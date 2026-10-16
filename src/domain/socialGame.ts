@@ -4,6 +4,8 @@ import {
 } from "./blackjack.ts";
 
 export type TablePhase = "betting" | "playing" | "finished";
+export const BETTING_TIMEOUT_MS = 120_000;
+export const TURN_TIMEOUT_MS = 45_000;
 export type TableWallet = { id: string; credits: number };
 export type TableHand = { cards: Card[]; wager: number; done: boolean; result: RoundResult | null };
 export type TableSeat = { id: string; wager: number; hands: TableHand[]; activeHand: number };
@@ -13,6 +15,7 @@ export type TableRound = {
   dealerCards: Card[];
   seats: TableSeat[];
   turn: number;
+  deadlineAt: number | null;
 };
 
 export class TableError extends Error {
@@ -33,7 +36,8 @@ export function openBetting(members: readonly TableWallet[], shoe: Card[]): Tabl
   return {
     phase: "betting", shoe: [...shoe], dealerCards: [],
     seats: members.map(({ id }) => ({ id, wager: 0, hands: [], activeHand: 0 })),
-    turn: -1
+    turn: -1,
+    deadlineAt: Date.now() + BETTING_TIMEOUT_MS
   };
 }
 
@@ -62,6 +66,7 @@ export function dealTable(round: TableRound, wallets: TableWallet[]): void {
   round.dealerCards.push(draw(round));
   round.phase = "playing";
   round.turn = 0;
+  round.deadlineAt = Date.now() + TURN_TIMEOUT_MS;
 
   const dealerNatural = isNatural(round.dealerCards);
   for (const seat of seats) {
@@ -153,6 +158,7 @@ function advanceTableTurn(round: TableRound, wallets: TableWallet[]): void {
       const nextHand = seat.hands.findIndex((h) => !h.done);
       if (nextHand >= 0) {
         seat.activeHand = nextHand;
+        round.deadlineAt = Date.now() + TURN_TIMEOUT_MS;
         return;
       }
     }
@@ -185,6 +191,7 @@ function settleTable(round: TableRound, wallets: TableWallet[]): void {
   }
   round.phase = "finished";
   round.turn = -1;
+  round.deadlineAt = null;
 }
 
 function value(card: Card): number {
@@ -201,6 +208,7 @@ function draw(round: TableRound): Card {
 export function publicTable(round: TableRound) {
   return {
     phase: round.phase,
+    deadlineAt: round.deadlineAt,
     dealerCards: round.phase === "finished"
       ? round.dealerCards : round.phase === "playing" ? [round.dealerCards[0], null] : [],
     dealerTotal: round.phase === "finished" ? scoreHand(round.dealerCards).total : null,
