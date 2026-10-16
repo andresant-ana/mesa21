@@ -59,6 +59,15 @@ h1 { margin: 8px 0 7px; color: #202822; font: 800 clamp(26px, 4vw, 39px)/1.12 "P
 .table-divider span { position: relative; top: -11px; padding: 0 12px; color: #e3ca82; background: #20463b; }
 .player-label { position: relative; z-index: 1; display: flex; align-items: center; gap: 12px; }
 .player-cards { min-height: 130px; }
+.player-cards:has(.split-hand) { gap: 20px; flex-wrap: wrap; align-items: stretch; }
+.split-hand { display: grid; align-content: start; gap: 7px; padding: 11px 14px; min-width: 0; border: 2px solid transparent; border-radius: 18px; background: rgba(255,255,255,.08); }
+.split-hand.is-active { border-color: #ffe082; background: rgba(255,255,255,.14); }
+.split-hand-label { font: 700 12px "Plus Jakarta Sans", sans-serif; color: #f6f0da; }
+.split-hand-cards { display: flex; align-items: center; padding-block: 3px; }
+.split-hand-cards .playing-card { width: 73px; height: 102px; font-size: 15px; }
+.split-hand-cards .card-center { font-size: 25px; }
+.split-hand-result { color: #ffe082; font: 700 12px "Plus Jakarta Sans", sans-serif; }
+
 .empty-card { width: 82px; height: 116px; display: grid; place-items: center; border: 1px dashed rgba(255,255,255,.27); border-radius: 13px; color: rgba(255,255,255,.42); font-size: 25px; }
 .empty-card + .empty-card { margin-left: 10px; }
 .round-message { position: relative; z-index: 1; min-height: 25px; margin-top: 3px; color: #e2cc91; font: 600 14px "Plus Jakarta Sans", sans-serif; }
@@ -88,6 +97,10 @@ h1 { margin: 8px 0 7px; color: #202822; font: 800 clamp(26px, 4vw, 39px)/1.12 "P
   .playing-card, .empty-card { width: 69px; height: 100px; border-radius: 11px; }
   .card-row { min-height: 112px; }
   .player-cards { min-height: 114px; }
+  .player-cards:has(.split-hand) { gap: 10px; }
+  .split-hand { padding: 9px; flex: 1 1 150px; }
+  .split-hand-cards .playing-card { width: 65px; height: 92px; font-size: 14px; }
+
   .controls { align-items: stretch; flex-direction: column; gap: 13px; padding-top: 17px; }
   .bet-select-wrap select { width: 100%; }
   .action-buttons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
