@@ -20,12 +20,12 @@ Cloudflare é uma decisão reversível: os assets estáticos têm cobrança/limi
 
 ## Limites de confiança
 
-- O cliente não envia cartas, saldo, total, prêmio ou resultado. Envia apenas aposta ao iniciar e ação hit/stand/double durante a rodada.
+- O cliente não envia cartas, saldo, total, prêmio ou resultado. Envia apenas aposta ao iniciar, ação hit/stand/double durante a rodada e uma solicitação de recarga casual validada exclusivamente no servidor.
 - O Worker valida método, origem, tipo de conteúdo e tamanho do corpo. A sessão usa identificador aleatório de 256 bits num cookie HttpOnly, SameSite=Strict e Path=/; Secure é aplicado em produção.
 - O identificador de visitante seleciona o Durable Object. Não é autenticação de conta; a versão inicial não promete proteção contra limpeza de cookies, automação ou criação de várias sessões.
 - O Durable Object valida aposta e fase, embaralha seis baralhos com crypto.getRandomValues, aplica as ações, resolve a dealer e persiste o saldo casual antes de responder.
 - A projeção da API omite carta fechada, sapato e estado interno. Não existe campo de escrita para créditos classificatórios; rankedPoints é sempre null.
-- Créditos são fictícios, sem compra, saque, conversão monetária ou uso competitivo. Cada sessão inicia com 1.000 créditos casuais; não há ranking.
+- Créditos são fictícios, sem compra, saque, conversão monetária ou uso competitivo. Cada sessão inicia com 2.000 créditos casuais; a recarga de cortesia ocorre somente quando o saldo casual fica abaixo da aposta mínima e não há rodada ativa. Não há ranking.
 - O estado tem persistência do lado servidor, mas ainda não há conta, recuperação entre dispositivos, mitigação contra abuso ou compromisso criptográfico de fairness publicamente verificável.
 - Respostas da API usam Cache-Control: no-store; não há CORS.
 - O resultado não deve ser apresentado como RNG competitivo auditado. Ranking exigirá identidade, rate limits, anti-abuso, logs, fairness verificável e auditoria operacional.
@@ -34,7 +34,7 @@ Cloudflare é uma decisão reversível: os assets estáticos têm cobrança/limi
 
 O motor puro em src/domain/blackjack.ts implementa sapato de seis baralhos, Fisher–Yates com fonte criptográfica, ases suaves, natural 3:2, empate, hit, stand, double, bust e dealer que para em 17 (incluindo soft 17). O sapato e a carta fechada permanecem no servidor.
 
-Nesta fatia: apostas casuais de 10 a 100 créditos em múltiplos de 10; 1.000 créditos fictícios iniciais; natural 3:2. Splits, seguro, side bets e regras configuráveis não fazem parte da tela.
+Nesta fatia: apostas casuais de 10 a 100 créditos em múltiplos de 10; 2.000 créditos fictícios iniciais; natural 3:2. O sapato é reutilizado entre rodadas e reembaralhado ao atingir 75% de penetração (até 78 cartas restantes). Dobrar e estourar encerra como derrota sem rodada da dealer. Splits, seguro, side bets e regras configuráveis ainda não fazem parte da tela.
 
 ## Estrutura
 
