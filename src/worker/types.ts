@@ -14,9 +14,12 @@ export interface DurableObjectStorage {
 }
 export interface DurableObjectState {
   storage: DurableObjectStorage;
+  acceptWebSocket?(socket: WebSocket): void;
+  getWebSockets?(): WebSocket[];
 }
 export interface Env {
   GAME_SESSIONS: DurableObjectNamespace;
+  ROOM_LOBBY: DurableObjectNamespace;
   ASSETS: { fetch(request: Request): Promise<Response> };
   ENVIRONMENT: string;
   ALLOWED_ORIGINS: string;
