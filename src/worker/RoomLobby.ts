@@ -1,8 +1,12 @@
 
 import type { DurableObjectState, Env } from "./types.ts";
+import { createShuffledShoe, RESHUFFLE_REMAINING_CARDS, STARTING_CASUAL_CREDITS, MIN_BET } from "../domain/blackjack.ts";
+import { dealTable, openBetting, placeTableBet, playTableAction, publicTable, TableError } from "../domain/socialGame.ts";
+import type { Action } from "../domain/blackjack.ts";
+import type { TableRound } from "../domain/socialGame.ts";
 
 type Visibility = "public" | "private";
-type Member = { id: string; session: string; name: string; joinedAt: number };
+type Member = { id: string; session: string; name: string; joinedAt: number; credits: number };
 type Room = {
   code: string;
   name: string;
@@ -11,6 +15,7 @@ type Room = {
   host: string;
   members: Member[];
   spectators: Member[];
+  round: TableRound | null;
   createdAt: number;
   touchedAt: number;
 };
@@ -57,6 +62,7 @@ function publicRoom(room: Room) {
     capacity: MAX_PLAYERS,
     spectators: room.spectators.length,
     hostName: room.members.find((member) => member.session === room.host)?.name ?? "",
+    phase: room.round?.phase ?? "waiting",
     createdAt: room.createdAt
   };
 }
@@ -69,7 +75,10 @@ function roomDetails(room: Room, session: string) {
     isHost: room.host === session,
     members: room.members.map(({ id, name }) => ({ id, name, isHost: room.members.find((m) => m.id === id)?.session === room.host })),
     spectatorsList: room.spectators.map(({ id, name }) => ({ id, name })),
-    gameAvailable: false
+    mySeatId: self?.id ?? null,
+    myCredits: self && room.members.includes(self) ? self.credits : null,
+    round: room.round ? publicTable(room.round) : null,
+    gameAvailable: true
   };
 }
 
@@ -82,7 +91,10 @@ export class RoomLobby {
   }
 
   fetch(request: Request): Promise<Response> {
-    const work = this.queue.then(() => this.handle(request));
+    const work = this.queue.then(() => this.handle(request)).catch((error: unknown) => {
+      if (error instanceof TableError) return result({ error: error.code }, 409);
+      return result({ error: "INTERNAL_ERROR" }, 500);
+    });
     this.queue = work.then(() => undefined, () => undefined);
     return work;
   }
@@ -117,17 +129,17 @@ export class RoomLobby {
       if (stored.rooms.length >= MAX_ROOMS) return result({ error: "ROOM_LIMIT_REACHED" }, 429);
       let code = randomCode();
       while (stored.rooms.some((room) => room.code === code)) code = randomCode();
-      const host = { id: randomCode(), session, name: displayName, joinedAt: now };
+      const host = { id: randomCode(), session, name: displayName, joinedAt: now, credits: STARTING_CASUAL_CREDITS };
       const room: Room = {
         code, name, visibility: body.visibility as Visibility, mode: "casual",
-        host: session, members: [host], spectators: [], createdAt: now, touchedAt: now
+        host: session, members: [host], spectators: [], round: null, createdAt: now, touchedAt: now
       };
       stored.rooms.push(room);
       await this.state.storage.put("rooms", stored);
       return result({ room: roomDetails(room, session) }, 201);
     }
 
-    const route = /^\/rooms\/([A-Z0-9]{12})(?:\/(join|leave|stream))?$/.exec(url.pathname);
+    const route = /^\/rooms\/([A-Z0-9]{12})(?:\/(join|leave|stream|start|bet|deal|action|refill))?$/.exec(url.pathname);
     if (!route || !CODE_PATTERN.test(route[1]!)) return result({ error: "NOT_FOUND" }, 404);
     const room = stored.rooms.find((entry) => entry.code === route[1]);
     if (!room) return result({ error: "ROOM_NOT_FOUND" }, 404);
@@ -159,8 +171,8 @@ export class RoomLobby {
         return result({ error: "NAME_TAKEN" }, 409);
       }
       if (stored.rooms.some((entry) => hasMember(entry, session))) return result({ error: "ALREADY_IN_ROOM" }, 409);
-      const member = { id: randomCode(), session, name, joinedAt: now };
-      if (room.members.length < MAX_PLAYERS) room.members.push(member);
+      const member = { id: randomCode(), session, name, joinedAt: now, credits: STARTING_CASUAL_CREDITS };
+      if (room.members.length < MAX_PLAYERS && (!room.round || room.round.phase === "finished")) room.members.push(member);
       else if (room.spectators.length < MAX_SPECTATORS) room.spectators.push(member);
       else return result({ error: "ROOM_FULL" }, 409);
       room.touchedAt = now;
@@ -169,8 +181,73 @@ export class RoomLobby {
       return result({ room: roomDetails(room, session) });
     }
 
+
+    if (action === "start") {
+      if (room.host !== session) return result({ error: "HOST_ONLY" }, 403);
+      if (room.round && room.round.phase !== "finished") return result({ error: "ROUND_ACTIVE" }, 409);
+      const previous = room.round?.shoe;
+      const shoe = previous && previous.length > RESHUFFLE_REMAINING_CARDS ? previous : createShuffledShoe();
+      room.round = openBetting(room.members, shoe);
+      room.touchedAt = now;
+      await this.state.storage.put("rooms", stored);
+      this.broadcast(room);
+      return result({ room: roomDetails(room, session) });
+    }
+
+    if (action === "bet") {
+      const member = room.members.find((player) => player.session === session);
+      if (!member || !room.round) return result({ error: "NOT_SEATED" }, 403);
+      const body = await parseBody(request);
+      if (!body) return result({ error: "INVALID_REQUEST" }, 400);
+      placeTableBet(room.round, member, body.bet as number);
+      if (room.round.seats.every((seat) => seat.wager > 0)) dealTable(room.round, room.members);
+      room.touchedAt = now;
+      await this.state.storage.put("rooms", stored);
+      this.broadcast(room);
+      return result({ room: roomDetails(room, session) });
+    }
+
+    if (action === "deal") {
+      if (room.host !== session) return result({ error: "HOST_ONLY" }, 403);
+      if (!room.round) return result({ error: "NO_ACTIVE_ROUND" }, 409);
+      dealTable(room.round, room.members);
+      room.touchedAt = now;
+      await this.state.storage.put("rooms", stored);
+      this.broadcast(room);
+      return result({ room: roomDetails(room, session) });
+    }
+
+    if (action === "action") {
+      const member = room.members.find((player) => player.session === session);
+      if (!member || !room.round) return result({ error: "NOT_SEATED" }, 403);
+      const body = await parseBody(request);
+      if (!body || !["hit", "stand", "double", "split"].includes(String(body.action))) {
+        return result({ error: "INVALID_ACTION" }, 400);
+      }
+      playTableAction(room.round, room.members, member.id, body.action as Action);
+      room.touchedAt = now;
+      await this.state.storage.put("rooms", stored);
+      this.broadcast(room);
+      return result({ room: roomDetails(room, session) });
+    }
+
+    if (action === "refill") {
+      const member = room.members.find((player) => player.session === session);
+      if (!member) return result({ error: "NOT_SEATED" }, 403);
+      if (room.round && room.round.phase !== "finished") return result({ error: "ROUND_ACTIVE" }, 409);
+      if (member.credits >= MIN_BET) return result({ error: "REFILL_NOT_AVAILABLE" }, 409);
+      member.credits = STARTING_CASUAL_CREDITS;
+      room.touchedAt = now;
+      await this.state.storage.put("rooms", stored);
+      this.broadcast(room);
+      return result({ room: roomDetails(room, session) });
+    }
+
     if (action === "leave") {
       if (!hasMember(room, session)) return result({ error: "NOT_IN_ROOM" }, 403);
+      if (room.members.some((m) => m.session === session) && room.round && room.round.phase !== "finished") {
+        return result({ error: "ROUND_ACTIVE" }, 409);
+      }
       room.members = room.members.filter((m) => m.session !== session);
       room.spectators = room.spectators.filter((m) => m.session !== session);
       if (room.members.length === 0 && room.spectators.length > 0) room.members.push(room.spectators.shift()!);

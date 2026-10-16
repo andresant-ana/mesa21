@@ -9,7 +9,7 @@ Blackjack solo, gratuito e leve, com créditos exclusivamente fictícios e ident
 - Motor de seis baralhos, cartas embaralhadas com fonte criptográfica, natural 3:2, hit, stand, double, split, empate e dealer para em soft 17.
 - Créditos casuais separados; API não aceita cartas, saldo ou resultado informados pelo navegador.
 - Clarice em SVG inline e cartas desenhadas com CSS; sem imagens raster ou CDN de ícones.
-- Lobby social inicial em `/salas.html`: salas públicas/privadas, convites por URL, ocupação de cadeiras e WebSocket de participantes. **Partidas multiplayer ainda não implementadas.**
+- Lobby social inicial em `/salas.html`: salas públicas/privadas, convites por URL, ocupação de cadeiras e WebSocket de participantes. **Partidas multiplayer casuais implementadas em código, ainda sem QA em navegadores reais ou publicação.**
 - Testes determinísticos e CI com checagem estrita de tipos.
 
 ### Ainda não implementado

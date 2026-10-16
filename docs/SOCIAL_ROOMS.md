@@ -1,4 +1,4 @@
-# M3 — Salas sociais: contrato e limites
+# M3/M4 — Salas sociais e blackjack compartilhado
 
 ## Implementado nesta entrega
 - Endpoint `GET /api/rooms` lista somente salas **públicas**.
@@ -10,8 +10,17 @@
 - Página `/salas.html` utiliza estes endpoints, permite criar, procurar, entrar, sair e copiar convites; em falha de socket, usa polling leve como fallback.
 - Todas as mudanças persistem em um singleton Cloudflare Durable Object (`RoomLobby`), com serialização das mutações.
 
-## Escopo negativo obrigatório
-**Ainda não é possível jogar blackjack multiplayer dentro dessas salas.** A funcionalidade está declarada como indisponível na interface. As partidas existentes são solo, sob `GameSession`. Não existem login, contas, ranking, ledger, recompensas diárias nem chat. Não há deploy público nesta entrega. Não habilitar salas classificatórias antes de identidade/ledger/fairness.
+## M4 — Blackjack casual multiplayer
+- Um dealer e sapato de seis baralhos compartilhados, até cinco participantes por rodada e regra S17.
+- Anfitrião inicia apostas: `POST /api/rooms/:code/start`.
+- Cada jogador aposta: `POST /api/rooms/:code/bet`; após todas as apostas, inicia automaticamente. O host pode distribuir antecipadamente com `POST /api/rooms/:code/deal` quando pelo menos um apostou.
+- Ações pedir, parar, dobrar e dividir: `POST /api/rooms/:code/action`, com validação do turno no servidor.
+- Créditos casuais separados por sala, sem vínculo com solo, rankings ou dinheiro real; recarga gratuita ao esgotar fora de rodada.
+- Carta fechada e sapato ocultos nas projeções; mãos/resultados/turnos por WebSocket, com polling de fallback.
+- Testes do motor cobrem turnos, naturals, split, DAS e pagamentos independentes.
+
+## Escopo e bloqueios
+**Ainda não é produto pronto para uso público**: faltam login, contas, histórico, ranking, ledger, bônus diários, chat e deploy. O jogo casual em grupo precisa de QA real de WebSocket/browser e de temporizadores para desconexões (um ausente pode travar a partida). Não habilitar modo classificatório antes da segurança/ledger.
 
 ## Segurança atual
 - Sessões visitantes dependem de cookie HttpOnly com 256 bits de entropia; o Worker substitui qualquer `x-mesa21-session` enviado pelo cliente.
@@ -27,11 +36,11 @@
 3. **Presença:** participantes desconectados permanecem na sala até saírem ou até expiração de 24h; faltam heartbeat, reserva temporária da cadeira e expulsão segura.
 4. **Durabilidade:** expiração de 24h sem atualização por evento remove a sala; não há alarme nem log de alterações.
 5. **Chat:** indisponível; futura moderação e controles contra abuso são necessários.
-6. **Jogo:** falta engine de rodadas multi-jogador, dealer compartilhado, apostas individuais, turnos, reconexão e testes concorrentes.
+6. **Jogo:** engine de rodadas multiplayer implementada em código, mas faltam timeout, reconexão real e testes concorrentes de integração.
 7. **Qualidade:** faltam testes de ponta a ponta num navegador real, carga WebSocket/DO real, WCAG e visual QA do Stitch.
 8. **Custos/deploy:** limites gratuitos Cloudflare e bindings por ambiente devem ser conferidos antes de publicar.
 
-## Próximo marco — multiplayer jogável
+## Próximo marco — multiplayer pronto para lançamento
 - Substituir ou dividir o singleton por DO por sala com directory confiável.
 - Modelar round com sapato e dealer compartilhados, mãos e apostas individuais server-side.
 - Validar turnos, ações de split/double, deadlines, reconexão e liquidações sem duplicar saldos.

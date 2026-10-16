@@ -46,3 +46,27 @@
   .room-list-item .button { padding-inline: 11px; }
   .room-detail-header { align-items: flex-start; flex-direction: column; }
 }
+
+.room-game { padding: 0 0 26px; }
+.room-game-table { display: grid; gap: 20px; padding: 25px; margin: 12px 0 18px; min-height: 290px; border-radius: 30px;
+  background: radial-gradient(ellipse at 50% 45%, #2a6150, #1d3f36 78%); color: #fffdfa; }
+.room-game-dealer { display: grid; justify-items: center; gap: 8px; min-height: 110px; }
+.room-game-cards { display: flex; flex-wrap: wrap; align-items: flex-start; min-height: 100px; padding: 7px 0; }
+.room-game-cards .playing-card { width: 70px; height: 97px; padding: 7px; font-size: 15px; }
+.room-game-cards .playing-card .card-center { font-size: 23px; }
+.room-game-hands { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; align-items: stretch; }
+.social-player { display: grid; gap: 8px; min-width: 0; padding: 14px; border-radius: 18px; background: rgba(255,255,255,.09); border: 2px solid transparent; }
+.social-player.is-turn { border-color: #ffe082; }
+.social-player strong { font: 700 14px "Plus Jakarta Sans", sans-serif; }
+.social-hand-label { color: #d6eadc; font-size: 12px; }
+.room-game-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; }
+.room-game-actions #game-betting, .room-game-actions #game-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; }
+.room-game-actions label { font-size: 13px; color: #59665f; font-weight: 700; }
+.room-game-actions select { min-height: 42px; border-radius: 14px; border: 1px solid #d7e1d8; background: #fffdfa; padding: 8px 12px; }
+@media(max-width: 590px) {
+  .room-game-table { padding: 15px; border-radius: 22px; }
+  .room-game-hands { grid-template-columns: repeat(auto-fit, minmax(125px, 1fr)); }
+  .social-player { padding: 10px; }
+  .room-game-cards .playing-card { width: 58px; height: 81px; font-size: 13px; }
+  .room-game-cards .playing-card .card-center { font-size: 19px; }
+}
