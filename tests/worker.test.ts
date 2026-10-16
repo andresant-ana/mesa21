@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import worker from "../src/worker/index.ts";
 import { GameSession } from "../src/worker/GameSession.ts";
-import { createGame } from "../src/domain/blackjack.ts";
+import { applyAction, createGame, RESHUFFLE_REMAINING_CARDS } from "../src/domain/blackjack.ts";
 
 function environment() {
   const objects = new Map<string, GameSession>();
@@ -37,7 +37,7 @@ test("cria sessão de visitante com cookie HttpOnly e créditos casuais", async 
   const response = await worker.fetch(new Request("https://mesa21.test/api/session"), env as never);
   const body = await response.json() as { casualCredits: number; rankedPoints: null; game: null };
   assert.equal(response.status, 200);
-  assert.equal(body.casualCredits, 1_000);
+  assert.equal(body.casualCredits, 2_000);
   assert.equal(body.rankedPoints, null);
   assert.equal(body.game, null);
   const cookie = response.headers.get("set-cookie") ?? "";
@@ -68,8 +68,8 @@ test("a API ignora saldo, cartas e resultado enviados pelo navegador", async () 
   }), env as never);
   const body = await response.json() as { casualCredits: number; game: Record<string, unknown> };
   assert.equal(response.status, 200);
-  assert.ok(body.casualCredits <= 1_015);
-  assert.ok(body.casualCredits >= 990);
+  assert.ok(body.casualCredits <= 2_015);
+  assert.ok(body.casualCredits >= 1_990);
   assert.equal("shoe" in body.game, false);
   assert.equal("balance" in body.game, false);
   assert.equal("cards" in body.game, false);
@@ -102,4 +102,53 @@ test("origem diferente e tipo de conteúdo inválido não alteram a sessão", as
     body: "bet=100"
   }), env as never);
   assert.equal(response.status, 415);
+});
+
+
+test("mantém a ordem do sapato entre rodadas enquanto a penetração está abaixo de 75%", async () => {
+  const store = new Map<string, unknown>();
+  const state = { storage: {
+    async get<T>(key: string) { return store.get(key) as T | undefined; },
+    async put<T>(key: string, value: T) { store.set(key, value); }
+  }};
+  const sequence = [
+    { rank: "10", suit: "clubs" }, { rank: "6", suit: "clubs" },
+    { rank: "9", suit: "hearts" }, { rank: "10", suit: "spades" },
+    ...Array.from({ length: 90 }, () => ({ rank: "2", suit: "clubs" }))
+  ] as const;
+  const previous = applyAction(createGame(2_000, 10, [...sequence]), "stand");
+  const remaining = [...previous.shoe];
+  assert.ok(remaining.length > RESHUFFLE_REMAINING_CARDS);
+  store.set("session", { casualCredits: 2_000, game: previous });
+  const session = new GameSession(state, {} as never);
+  const response = await session.fetch(new Request("https://internal/game/start", {
+    method: "POST", body: JSON.stringify({ bet: 10 })
+  }));
+  assert.equal(response.status, 200);
+  const saved = store.get("session") as { game: ReturnType<typeof createGame> };
+  assert.deepEqual(saved.game.playerCards, [remaining[0], remaining[2]]);
+  assert.deepEqual(saved.game.dealerCards, [remaining[1], remaining[3]]);
+  assert.equal(saved.game.shoe.length, remaining.length - 4);
+});
+
+test("reembaralha seis baralhos quando atinge 75% de penetração", async () => {
+  const store = new Map<string, unknown>();
+  const state = { storage: {
+    async get<T>(key: string) { return store.get(key) as T | undefined; },
+    async put<T>(key: string, value: T) { store.set(key, value); }
+  }};
+  const previous = applyAction(createGame(2_000, 10, [
+    { rank: "10", suit: "clubs" }, { rank: "6", suit: "clubs" },
+    { rank: "9", suit: "hearts" }, { rank: "10", suit: "spades" },
+    { rank: "5", suit: "diamonds" }
+  ]), "stand");
+  previous.shoe = Array.from({ length: RESHUFFLE_REMAINING_CARDS }, () => ({ rank: "2", suit: "clubs" }));
+  store.set("session", { casualCredits: 2_000, game: previous });
+  const session = new GameSession(state, {} as never);
+  const response = await session.fetch(new Request("https://internal/game/start", {
+    method: "POST", body: JSON.stringify({ bet: 10 })
+  }));
+  assert.equal(response.status, 200);
+  const saved = store.get("session") as { game: ReturnType<typeof createGame> };
+  assert.equal(saved.game.shoe.length, 6 * 52 - 4);
 });
