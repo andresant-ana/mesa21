@@ -118,3 +118,82 @@ test("dobrar e estourar 21 liquida derrota imediatamente, sem ação da dealer",
   assert.equal(doubled.dealerCards.length, 2);
   assert.equal(toPublicGame(doubled).dealerTotal, 16);
 });
+
+
+test("divide par, joga duas mãos e liquida apostas separadamente", () => {
+  const game = createGame(2_000, 100, shoe(c("8"), c("6"), c("8"), c("10"), c("3"), c("2"), c("5")));
+  assert.equal(toPublicGame(game).canSplit, true);
+  const split = applyAction(game, "split");
+  assert.equal(split.balance, 1_800);
+  assert.deepEqual(split.playerCards, [c("8"), c("3")]);
+  assert.deepEqual(split.splitHand?.cards, [c("8"), c("2")]);
+  assert.equal(split.activeHand, 0);
+  assert.equal(toPublicGame(split).canSplit, false);
+
+  const firstDone = applyAction(split, "stand");
+  assert.equal(firstDone.phase, "player");
+  assert.equal(firstDone.activeHand, 1);
+  const settled = applyAction(firstDone, "stand");
+  assert.equal(settled.phase, "finished");
+  assert.equal(settled.result, "loss");
+  assert.equal(settled.splitHand?.result, "loss");
+  assert.equal(settled.balance, 1_800);
+});
+
+test("ases divididos compram só uma carta cada e 21 não recebe prêmio de blackjack natural", () => {
+  const game = createGame(2_000, 100, shoe(c("A"), c("6"), c("A"), c("10"), c("K"), c("9"), c("2")));
+  const split = applyAction(game, "split");
+  assert.equal(split.phase, "finished");
+  assert.equal(split.playerCards.length, 2);
+  assert.equal(split.splitHand?.cards.length, 2);
+  assert.equal(split.result, "win");
+  assert.equal(split.splitHand?.result, "win");
+  assert.equal(split.balance, 2_200);
+  assert.equal(toPublicGame(split).canDouble, false);
+});
+
+test("permite dobrar após split, termina a primeira mão e passa para a segunda", () => {
+  const game = createGame(2_000, 100, shoe(c("9"), c("6"), c("9"), c("10"), c("2"), c("3"), c("K"), c("2")));
+  const split = applyAction(game, "split");
+  const doubled = applyAction(split, "double");
+  assert.equal(doubled.phase, "player");
+  assert.equal(doubled.activeHand, 1);
+  assert.equal(doubled.bet, 200);
+  assert.equal(doubled.balance, 1_700);
+  const settled = applyAction(doubled, "stand");
+  assert.equal(settled.result, "win");
+  assert.equal(settled.splitHand?.result, "loss");
+  assert.equal(settled.balance, 2_100);
+});
+
+test("estouro de uma mão dividida não encerra a outra", () => {
+  const game = createGame(2_000, 100, shoe(c("8"), c("6"), c("8"), c("10"), c("6"), c("10"), c("K"), c("A")));
+  const split = applyAction(game, "split");
+  const firstBust = applyAction(split, "hit");
+  assert.equal(firstBust.phase, "player");
+  assert.equal(firstBust.activeHand, 1);
+  assert.equal(firstBust.result, "bust");
+  const final = applyAction(firstBust, "stand");
+  assert.equal(final.phase, "finished");
+  assert.equal(final.result, "bust");
+  assert.equal(final.splitHand?.result, "win");
+  assert.equal(final.balance, 2_000);
+});
+
+test("não permite split sem saldo nem segundo split", () => {
+  const poor = createGame(100, 100, shoe(c("8"), c("6"), c("8"), c("10"), c("2"), c("2")));
+  assert.equal(toPublicGame(poor).canSplit, false);
+  assert.throws(() => applyAction(poor, "split"), /SPLIT_UNAVAILABLE/);
+
+  const game = createGame(2_000, 100, shoe(c("8"), c("6"), c("8"), c("10"), c("8"), c("8"), c("5")));
+  const split = applyAction(game, "split");
+  assert.throws(() => applyAction(split, "split"), /SPLIT_UNAVAILABLE/);
+});
+
+test("reconhece naipes diferentes e cartas de valor dez como pares divisíveis", () => {
+  const game = createGame(2_000, 100, shoe(c("Q", "hearts"), c("6"), c("K", "spades"), c("9")));
+  assert.equal(toPublicGame(game).canSplit, true);
+  const split = applyAction(game, "split");
+  assert.ok(split.splitHand);
+  assert.equal(split.balance, 1_800);
+});
