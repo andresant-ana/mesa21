@@ -1,7 +1,8 @@
-export const STARTING_CASUAL_CREDITS = 1_000;
+export const STARTING_CASUAL_CREDITS = 2_000;
 export const MIN_BET = 10;
 export const MAX_BET = 100;
 export const SHOE_DECKS = 6;
+export const RESHUFFLE_REMAINING_CARDS = (SHOE_DECKS * 52) / 4; // 75% penetration
 
 export const SUITS = ["clubs", "diamonds", "hearts", "spades"] as const;
 export const RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"] as const;
@@ -148,7 +149,9 @@ export function applyAction(current: GameState, action: Action): GameState {
     game.balance -= game.bet;
     game.bet *= 2;
     game.playerCards.push(draw(game));
-    dealerPlays(game);
+    // A double-down bust loses immediately: the dealer must not compare hands.
+    if (scoreHand(game.playerCards).total > 21) finish(game, "bust");
+    else dealerPlays(game);
     return game;
   }
 

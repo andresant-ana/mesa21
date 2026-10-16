@@ -42,7 +42,8 @@ export default {
     headers.set("X-Content-Type-Options", "nosniff");
     headers.set("Referrer-Policy", "same-origin");
     if (!getCookie(request.headers.get("cookie"), SESSION_COOKIE)) {
-      const secure = env.ENVIRONMENT === "production" ? "; Secure" : "";
+      // Enforce Secure on HTTPS regardless of the deployment environment flag.
+      const secure = url.protocol === "https:" ? "; Secure" : "";
       headers.append("Set-Cookie", SESSION_COOKIE + "=" + token + "; Path=/; HttpOnly; SameSite=Strict; Max-Age=2592000" + secure);
     }
     return new Response(response.body, { status: response.status, headers });

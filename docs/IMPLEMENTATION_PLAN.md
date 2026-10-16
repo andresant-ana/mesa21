@@ -7,20 +7,21 @@ Cada marco terá PR próprio, CI verde, revisão do diff e evidência de comport
 **Entregas**
 - Aplicação TypeScript com build estático e Worker API.
 - Sessão visitante anônima; saldo casual persistido no Durable Object.
-- Partida solo com aposta, hit, stand, double, natural 3:2, empate e dealer em soft 17.
+- Partida solo com aposta, hit, stand, double (incluindo bust na dobra), natural 3:2, empate e dealer em soft 17.
+- Sapato persistente de seis baralhos entre rodadas, reembaralhado após 75% de penetração; créditos iniciais casuais de 2.000 e recarga sem efeito classificatório quando saldo se esgota.
 - Clarice em SVG inline; cartas em CSS; layout responsivo.
 - Testes do motor, pipeline CI, auditoria Stitch e documentação arquitetural.
 
 **Critérios verificáveis**
 - npm install, npm run check, npm test e npm run build passam.
-- Testes determinísticos cobrem ases, natural, pagamentos, empate, bust, stand, double, validação, S17, sigilo da carta fechada e rejeição de ações pós-rodada.
+- Testes determinísticos cobrem ases, natural, pagamentos, empate, bust, stand, double e bust em double, validação, S17, sigilo da carta fechada, reuso/reembaralhamento de sapato, recarga casual e rejeição de ações pós-rodada.
 - A API pública não serializa sapato/carta fechada nem aceita saldo, cartas ou resultado enviados pelo cliente.
 - Saldo casual é gravado no servidor antes da resposta; sessão usa cookie HttpOnly same-site.
 - Nenhum chat, multiplayer, ranking ou crédito competitivo é alegado como funcional.
 
 ## M2 — Regras e experiência da mesa
 
-- Reconciliar regras restantes com o PRD; acrescentar split/limites se previstos nele.
+- Implementar split previsto expressamente no PRD v1.0, com casos de duas mãos, pagamento individual e condições aplicáveis ao split de ases; explicitar regras de re-split/DAS.
 - Adicionar testes de propriedades e regressões para transições/pagamentos.
 - Revisar contraste, teclado/leitor de tela, 320px–desktop e movimento reduzido.
 - Critério: regras documentadas, suíte abrangente, avaliação responsiva e acessibilidade sem bloqueios conhecidos.
@@ -43,4 +44,4 @@ Cada marco terá PR próprio, CI verde, revisão do diff e evidência de comport
 - Especificar fairness verificável, prevenção a replay/automação, rate limits, logs e regras do ranking.
 - Critério: threat model e protocolo revisados, testes de adulteração/replay/concorrência, auditoria operacional e UI que distingue unidades.
 
-O PRD v1.0 mencionado na solicitação não apareceu entre os arquivos disponíveis no início do trabalho. Os critérios funcionais finais devem ser conferidos contra esse texto antes de M2.
+O PRD v1.0 foi posteriormente disponibilizado na conversa e revisado na auditoria de 16/10/2026. Antes de M2, formalizar decisões ainda ambíguas (split de ases, DAS e número máximo de splits) e manter o motor como fonte de verdade.

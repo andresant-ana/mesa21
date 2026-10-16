@@ -2,6 +2,8 @@ import {
   applyAction,
   createGame,
   createShuffledShoe,
+  MIN_BET,
+  RESHUFFLE_REMAINING_CARDS,
   RuleError,
   STARTING_CASUAL_CREDITS,
   toPublicGame
@@ -45,16 +47,35 @@ export class GameSession {
       }
 
       if (request.method !== "POST") return json({ error: "NOT_FOUND" }, 404);
-      const body = await request.json() as Record<string, unknown>;
+      const payload: unknown = await request.json();
+      if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+        return json({ error: "INVALID_REQUEST" }, 400);
+      }
+      const body = payload as Record<string, unknown>;
 
       if (url.pathname === "/game/start") {
         if (state.game?.phase === "player") return json({ error: "ROUND_ACTIVE" }, 409);
         const bet = body.bet;
         if (typeof bet !== "number") return json({ error: "INVALID_BET" }, 400);
-        state.game = createGame(state.casualCredits, bet, createShuffledShoe());
+        // A shoe persists across rounds; reshuffle before the next hand after 75% use.
+        const remaining = state.game?.shoe;
+        const shoe = remaining && remaining.length > RESHUFFLE_REMAINING_CARDS
+          ? remaining
+          : createShuffledShoe();
+        state.game = createGame(state.casualCredits, bet, shoe);
         state.casualCredits = state.game.balance;
         await this.storage.put("session", state);
         return json({ casualCredits: state.casualCredits, rankedPoints: null, game: publicGame(state.game) });
+      }
+
+      if (url.pathname === "/game/refill") {
+        // Only casual credits can be replenished; there is no ranked balance here.
+        if (state.game?.phase === "player") return json({ error: "ROUND_ACTIVE" }, 409);
+        if (state.casualCredits >= MIN_BET) return json({ error: "REFILL_NOT_AVAILABLE" }, 409);
+        state.casualCredits = STARTING_CASUAL_CREDITS;
+        state.game = null;
+        await this.storage.put("session", state);
+        return json({ casualCredits: state.casualCredits, rankedPoints: null, game: null });
       }
 
       if (url.pathname === "/game/action") {

@@ -105,3 +105,16 @@ test("recusa novas ações depois que a rodada termina", () => {
   assert.throws(() => applyAction(ended, "hit"), /ROUND_NOT_ACTIVE/);
 });
 
+
+
+test("dobrar e estourar 21 liquida derrota imediatamente, sem ação da dealer", () => {
+  const game = createGame(2_000, 100, shoe(c("10"), c("6"), c("9"), c("10"), c("K"), c("5")));
+  const doubled = applyAction(game, "double");
+  assert.equal(doubled.phase, "finished");
+  assert.equal(doubled.result, "bust");
+  assert.equal(doubled.balance, 1_800);
+  assert.equal(doubled.bet, 200);
+  assert.equal(doubled.playerCards.length, 3);
+  assert.equal(doubled.dealerCards.length, 2);
+  assert.equal(toPublicGame(doubled).dealerTotal, 16);
+});
