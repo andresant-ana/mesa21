@@ -11,6 +11,8 @@ export interface DurableObjectNamespace {
 export interface DurableObjectStorage {
   get<T>(key: string): Promise<T | undefined>;
   put<T>(key: string, value: T): Promise<void>;
+  setAlarm?(timestamp: number): Promise<void>;
+  deleteAlarm?(): Promise<void>;
 }
 export interface DurableObjectState {
   storage: DurableObjectStorage;
