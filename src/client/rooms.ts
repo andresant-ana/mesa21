@@ -187,6 +187,85 @@ function renderRoom(room: Detail): void {
   if (joined && (!socket || socket.readyState === WebSocket.CLOSED)) connect(room.code);
 }
 
+
+function socialCard(card: SocialCard | null): HTMLElement {
+  const nodeCard = document.createElement("div");
+  nodeCard.className = "playing-card" + (!card ? " card-back" : ["hearts", "diamonds"].includes(card.suit) ? " red-suit" : "");
+  if (!card) {
+    nodeCard.textContent = "✦";
+    nodeCard.setAttribute("aria-label", "Carta fechada");
+    return nodeCard;
+  }
+  const symbol = ({ clubs: "♣", diamonds: "♦", hearts: "♥", spades: "♠" } as Record<SocialCard["suit"], string>)[card.suit];
+  nodeCard.setAttribute("aria-label", card.rank + " " + symbol);
+  nodeCard.append(node("span", "card-corner", card.rank + symbol), node("span", "card-center", symbol),
+    node("span", "card-corner card-corner-bottom", card.rank + symbol));
+  return nodeCard;
+}
+
+function renderGameplay(room: Detail): void {
+  const area = element<HTMLElement>("game-area");
+  area.hidden = room.role === "visitor";
+  if (area.hidden) return;
+  const round = room.round;
+  const isPlayer = room.role === "player";
+  const seat = round?.seats.find((s) => s.id === room.mySeatId);
+  const dealer = element<HTMLElement>("social-dealer-cards");
+  const hands = element<HTMLElement>("social-player-hands");
+  dealer.replaceChildren();
+  hands.replaceChildren();
+  element<HTMLElement>("game-credits").textContent = room.myCredits === null ? "Assistindo" : room.myCredits + " créditos da sala";
+  if (round) {
+    dealer.append(...round.dealerCards.map(socialCard));
+    for (const participant of round.seats) {
+      const name = room.members.find((m) => m.id === participant.id)?.name ?? "Jogador";
+      const section = node("section", "social-player" + (round.turnSeatId === participant.id ? " is-turn" : ""), "");
+      const caption = node("strong", "", name + (participant.id === room.mySeatId ? " (você)" : ""));
+      section.append(caption);
+      for (const [index, hand] of participant.hands.entries()) {
+        const title = node("span", "social-hand-label",
+          (participant.hands.length > 1 ? "Mão " + (index + 1) + " · " : "") +
+          hand.total + " pontos · " + hand.wager + " fichas" + (hand.result ? " · " + hand.result : ""));
+        const cardRow = node("div", "room-game-cards", "");
+        cardRow.append(...hand.cards.map(socialCard));
+        section.append(title, cardRow);
+      }
+      hands.append(section);
+    }
+  }
+
+  const isBetting = round?.phase === "betting";
+  const isPlaying = round?.phase === "playing";
+  const isFinished = round?.phase === "finished";
+  const hasBet = (seat?.wager ?? 0) > 0;
+  const myTurn = isPlaying && round?.turnSeatId === room.mySeatId && isPlayer;
+  const myHand = seat?.hands[seat.activeHand];
+  element<HTMLButtonElement>("game-start").hidden = !(room.isHost && (!round || isFinished));
+  element<HTMLElement>("game-betting").hidden = !(isBetting && isPlayer && !hasBet);
+  element<HTMLButtonElement>("game-deal").hidden = !(isBetting && room.isHost && (round?.seats.some((s) => s.wager > 0) ?? false));
+  element<HTMLElement>("game-actions").hidden = !myTurn;
+  element<HTMLButtonElement>("social-double").hidden = !myTurn || !myHand || myHand.cards.length !== 2 || (room.myCredits ?? 0) < myHand.wager;
+  const splitValue = (rank: string) => ["10", "J", "Q", "K"].includes(rank) ? 10 : rank === "A" ? 11 : Number(rank);
+  element<HTMLButtonElement>("social-split").hidden = !myTurn || !myHand || seat?.hands.length !== 1 ||
+    myHand.cards.length !== 2 || splitValue(myHand.cards[0]!.rank) !== splitValue(myHand.cards[1]!.rank) ||
+    (room.myCredits ?? 0) < myHand.wager;
+  element<HTMLButtonElement>("social-refill").hidden = !isPlayer || (room.myCredits ?? 0) >= 10 || (isBetting || isPlaying);
+  element<HTMLElement>("game-status").textContent = !round ? "Aguardando anfitrião começar a primeira rodada." :
+    isBetting ? hasBet ? "Aposta registrada. Aguardando os outros jogadores." : "Escolha sua aposta para começar." :
+    isPlaying ? myTurn ? "Sua vez! O que você vai fazer?" :
+    "Vez de " + (room.members.find((m) => m.id === round.turnSeatId)?.name ?? "outro jogador") + "." :
+    "Rodada encerrada! O anfitrião pode começar outra.";
+}
+
+async function roomAction(path: string, body: unknown = {}): Promise<void> {
+  if (!opened) return;
+  const code = opened.code;
+  await withBusy(async () => {
+    const { room } = await api<{ room: Detail }>("/rooms/" + code + "/" + path, body);
+    renderRoom(room);
+  });
+}
+
 async function openRoom(code: string, updateHistory = true): Promise<void> {
   const sanitized = code.toUpperCase().trim();
   if (!CODE_PATTERN.test(sanitized)) {
