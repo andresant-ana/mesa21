@@ -35,7 +35,9 @@ Cada marco terá PR próprio, CI verde, revisão do diff e evidência de comport
 
 ## M4 — Salas sociais reais
 
-- Implementar transporte em tempo real, salas públicas/privadas, ocupação, turnos, reconexão e encerramento.
+**Implementação parcial:** criação/listagem de salas públicas, salas privadas por código, presença de até cinco participantes com espectadores, saída/troca de host, snapshots e eventos WebSocket via Durable Object. Interface própria em `/salas.html`; detalhes em `docs/SOCIAL_ROOMS.md`. Não existe jogo coletivo nem classificação.
+
+- Conectar engine e dealer compartilhados a rodadas multiplayer; garantir turnos, reconexão, apostas/credit ledger individual e encerramento. Transporte e salas de espera básicos já materializados.
 - Chat/moderação só após segurança e controles de abuso.
 - Critério: testes multi-cliente para ordem de turnos, sigilo e ciclo de vida; reconexão sem duplicar aposta.
 
