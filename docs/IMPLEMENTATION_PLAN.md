@@ -21,7 +21,8 @@ Cada marco terá PR próprio, CI verde, revisão do diff e evidência de comport
 
 ## M2 — Regras e experiência da mesa
 
-- Implementar split previsto expressamente no PRD v1.0, com casos de duas mãos, pagamento individual e condições aplicáveis ao split de ases; explicitar regras de re-split/DAS.
+- Implementado: split previsto no PRD v1.0, no máximo duas mãos, pagamentos individuais, split de ases com uma carta por mão, DAS permitido, re-split proibido, naipes mistos de valor 10 aceitos. Cobertura determinística no motor e API.
+- Pendente: QA visual da mesa dividida e teste manual/automatizado nos principais navegadores.
 - Adicionar testes de propriedades e regressões para transições/pagamentos.
 - Revisar contraste, teclado/leitor de tela, 320px–desktop e movimento reduzido.
 - Critério: regras documentadas, suíte abrangente, avaliação responsiva e acessibilidade sem bloqueios conhecidos.
@@ -44,4 +45,4 @@ Cada marco terá PR próprio, CI verde, revisão do diff e evidência de comport
 - Especificar fairness verificável, prevenção a replay/automação, rate limits, logs e regras do ranking.
 - Critério: threat model e protocolo revisados, testes de adulteração/replay/concorrência, auditoria operacional e UI que distingue unidades.
 
-O PRD v1.0 foi posteriormente disponibilizado na conversa e revisado na auditoria de 16/10/2026. Antes de M2, formalizar decisões ainda ambíguas (split de ases, DAS e número máximo de splits) e manter o motor como fonte de verdade.
+O PRD v1.0 foi posteriormente disponibilizado na conversa e revisado na auditoria de 16/10/2026. Regras omitidas no texto foram fixadas reversivelmente nesta implementação: um split por rodada, split de ases com uma carta e parada automática, DAS permitido, dez-valores mistos tratados como pares. Revisar com testes de produto antes do lançamento.
