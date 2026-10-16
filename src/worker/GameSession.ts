@@ -2,6 +2,7 @@ import {
   applyAction,
   createGame,
   createShuffledShoe,
+  RESHUFFLE_REMAINING_CARDS,
   RuleError,
   STARTING_CASUAL_CREDITS,
   toPublicGame
@@ -51,7 +52,12 @@ export class GameSession {
         if (state.game?.phase === "player") return json({ error: "ROUND_ACTIVE" }, 409);
         const bet = body.bet;
         if (typeof bet !== "number") return json({ error: "INVALID_BET" }, 400);
-        state.game = createGame(state.casualCredits, bet, createShuffledShoe());
+        // A shoe persists across rounds; reshuffle before the next hand after 75% use.
+        const remaining = state.game?.shoe;
+        const shoe = remaining && remaining.length > RESHUFFLE_REMAINING_CARDS
+          ? remaining
+          : createShuffledShoe();
+        state.game = createGame(state.casualCredits, bet, shoe);
         state.casualCredits = state.game.balance;
         await this.storage.put("session", state);
         return json({ casualCredits: state.casualCredits, rankedPoints: null, game: publicGame(state.game) });
