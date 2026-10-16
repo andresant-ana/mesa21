@@ -28,6 +28,8 @@ const hitButton = required<HTMLButtonElement>("hit");
 const standButton = required<HTMLButtonElement>("stand");
 const doubleButton = required<HTMLButtonElement>("double");
 const newRoundButton = required<HTMLButtonElement>("new-round");
+const refillButton = required<HTMLButtonElement>("refill");
+let currentCredits = 0;
 let activeGame: PublicGame | null = null;
 let busy = false;
 
@@ -59,13 +61,17 @@ async function loadSession(): Promise<void> {
 }
 
 function renderSession(session: Session): void {
-  balanceElement.textContent = formatCredits(session.casualCredits);
+  currentCredits = session.casualCredits;
+  balanceElement.textContent = formatCredits(currentCredits);
   activeGame = session.game;
   errorElement.hidden = true;
   renderGame(session.game);
 }
 
 function renderGame(game: PublicGame | null): void {
+  const canRefill = currentCredits < 10 && (!game || game.phase === "finished");
+  refillButton.hidden = !canRefill;
+  refillButton.disabled = busy || !canRefill;
   if (!game) {
     dealerCardsElement.replaceChildren(hint("Dê início à rodada quando estiver pronto."));
     playerCardsElement.replaceChildren(emptyCard(), emptyCard());
@@ -74,7 +80,7 @@ function renderGame(game: PublicGame | null): void {
     messageElement.textContent = "Uma mesa simples, só para você.";
     setActions(false, false);
     betElement.disabled = busy;
-    newRoundButton.disabled = busy;
+    newRoundButton.disabled = busy || currentCredits < 10;
     return;
   }
 
@@ -83,7 +89,7 @@ function renderGame(game: PublicGame | null): void {
   dealerTotalElement.textContent = game.dealerTotal === null ? "" : String(game.dealerTotal);
   playerTotalElement.textContent = String(game.playerTotal);
   betElement.disabled = busy || game.phase === "player";
-  newRoundButton.disabled = busy || game.phase === "player";
+  newRoundButton.disabled = busy || game.phase === "player" || currentCredits < 10;
 
   if (game.phase === "player") {
     messageElement.textContent = "Sua vez. Peça uma carta, pare ou dobre a aposta.";
@@ -173,6 +179,7 @@ async function perform(path: string, body: unknown): Promise<void> {
   busy = true;
   setActions(false, false);
   newRoundButton.disabled = true;
+  refillButton.disabled = true;
   betElement.disabled = true;
   errorElement.hidden = true;
   try {
@@ -188,6 +195,7 @@ async function perform(path: string, body: unknown): Promise<void> {
 function friendlyError(code: string): string {
   if (code === "INSUFFICIENT_CREDITS") return "Você não tem créditos casuais suficientes para essa aposta.";
   if (code === "ROUND_ACTIVE") return "Termine a rodada atual antes de começar outra.";
+  if (code === "REFILL_NOT_AVAILABLE") return "Os créditos de cortesia estarão disponíveis quando você ficar sem fichas casuais.";
   if (code === "ORIGIN_NOT_ALLOWED") return "A origem da solicitação não foi aceita.";
   return "A ação não foi concluída. Tente novamente.";
 }
@@ -196,6 +204,7 @@ hitButton.addEventListener("click", () => void perform("/api/game/action", { act
 standButton.addEventListener("click", () => void perform("/api/game/action", { action: "stand" }));
 doubleButton.addEventListener("click", () => void perform("/api/game/action", { action: "double" }));
 newRoundButton.addEventListener("click", () => void perform("/api/game/start", { bet: Number(betElement.value) }));
+refillButton.addEventListener("click", () => void perform("/api/game/refill", {}));
 window.addEventListener("keydown", (event) => {
   if (event.altKey || event.ctrlKey || event.metaKey || event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement) return;
   const key = event.key.toLowerCase();
