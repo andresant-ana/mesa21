@@ -16,12 +16,13 @@ export type TableRound = {
 };
 
 export class TableError extends Error {
-  constructor(readonly code:
+  readonly code:
     "INVALID_BET" | "INSUFFICIENT_CREDITS" | "WRONG_PHASE" | "ALREADY_BET" |
     "NOT_SEATED" | "NO_BETS" | "NOT_YOUR_TURN" | "DOUBLE_UNAVAILABLE" |
-    "SPLIT_UNAVAILABLE" | "SHOE_EXHAUSTED"
-  ) {
+    "SPLIT_UNAVAILABLE" | "SHOE_EXHAUSTED";
+  constructor(code: TableError["code"]) {
     super(code);
+    this.code = code;
     this.name = "TableError";
   }
 }
