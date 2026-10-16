@@ -125,3 +125,48 @@ test("Worker valida origem e rejeita criação de sala sem proteção CSRF", asy
   }), env as never);
   assert.equal((await outsider.json() as { room: { role: string } }).room.role, "visitor");
 });
+
+
+test("duas sessões apostam contra a mesma dealer, com turno obrigatório e cartas ocultas", async () => {
+  const { request, storage } = setup();
+  const host = session("a"), friend = session("b");
+  const first = await request(host, "/rooms", create());
+  const { room } = await first.json() as { room: { code: string } };
+  await request(friend, "/rooms/" + room.code + "/join", { displayName: "luigi21" });
+  assert.equal((await request(host, "/rooms/" + room.code + "/start", {})).status, 200);
+  const saved = storage.get("rooms") as { rooms: Array<{ round: { shoe: Array<{ rank: string; suit: string }> } }> };
+  saved.rooms[0]!.round.shoe = [
+    { rank: "10", suit: "clubs" }, { rank: "9", suit: "clubs" },
+    { rank: "6", suit: "clubs" }, { rank: "8", suit: "clubs" },
+    { rank: "7", suit: "clubs" }, { rank: "10", suit: "clubs" },
+    { rank: "6", suit: "clubs" }, { rank: "2", suit: "clubs" },
+    ...Array.from({ length: 50 }, () => ({ rank: "2", suit: "clubs" }))
+  ];
+  assert.equal((await request(host, "/rooms/" + room.code + "/bet", { bet: 100 })).status, 200);
+  const begin = await request(friend, "/rooms/" + room.code + "/bet", { bet: 100 });
+  const publicState = (await begin.json() as { room: { round: { phase: string; dealerCards: unknown[] } } }).room;
+  assert.equal(publicState.round.phase, "playing");
+  assert.equal(publicState.round.dealerCards[1], null);
+  assert.equal((await request(friend, "/rooms/" + room.code + "/action", { action: "stand" })).status, 409);
+  assert.equal((await request(host, "/rooms/" + room.code + "/action", { action: "stand" })).status, 200);
+  assert.equal((await request(friend, "/rooms/" + room.code + "/action", { action: "hit" })).status, 200);
+  const hostSnap = await request(host, "/rooms/" + room.code);
+  const after = (await hostSnap.json() as { room: {
+    round: { phase: string; dealerCards: unknown[] };
+    myCredits: number;
+  } }).room;
+  assert.equal(after.round.phase, "finished");
+  assert.equal(after.round.dealerCards.length, 3);
+  assert.equal(after.myCredits, 2_000);
+  assert.equal((await request(host, "/rooms/" + room.code + "/action", { action: "stand" })).status, 409);
+  assert.equal((await request(host, "/rooms/" + room.code + "/leave", {})).status, 200);
+});
+
+test("não deixa sair nem reiniciar rodada que ainda está recebendo apostas", async () => {
+  const { request } = setup();
+  const { room } = await (await request(session("a"), "/rooms", create())).json() as { room: { code: string } };
+  await request(session("a"), "/rooms/" + room.code + "/start", {});
+  assert.equal((await request(session("a"), "/rooms/" + room.code + "/leave", {})).status, 409);
+  assert.equal((await request(session("a"), "/rooms/" + room.code + "/start", {})).status, 409);
+  assert.equal((await request(session("a"), "/rooms/" + room.code + "/deal", {})).status, 409);
+});
