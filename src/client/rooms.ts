@@ -335,6 +335,16 @@ element<HTMLButtonElement>("copy-invite").addEventListener("click", async () => 
   } catch { inviteLink.focus(); inviteLink.select(); connectionState.textContent = "Selecione e copie o link acima."; }
 });
 
+element<HTMLButtonElement>("game-start").addEventListener("click", () => void roomAction("start"));
+element<HTMLButtonElement>("game-deal").addEventListener("click", () => void roomAction("deal"));
+element<HTMLButtonElement>("game-bet").addEventListener("click", () => void roomAction("bet", {
+  bet: Number(element<HTMLSelectElement>("game-wager").value)
+}));
+for (const [id, action] of [["social-hit", "hit"], ["social-stand", "stand"],
+  ["social-double", "double"], ["social-split", "split"]] as const) {
+  element<HTMLButtonElement>(id).addEventListener("click", () => void roomAction("action", { action }));
+}
+element<HTMLButtonElement>("social-refill").addEventListener("click", () => void roomAction("refill"));
 element<HTMLButtonElement>("refresh-rooms").addEventListener("click", () => void withBusy(renderDirectory));
 window.addEventListener("popstate", () => { closeSocket(); void initialize(); });
 
