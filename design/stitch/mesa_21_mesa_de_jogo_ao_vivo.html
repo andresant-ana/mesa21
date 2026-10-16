@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-surface-variant": "#414845", "surface-container": "#eaeef8", "surface": "#f8f9ff", "inverse-primary": "#aacec2", "surface-container-high": "#e4e8f2", "tertiary-fixed": "#ffe083", "outline": "#717975", "surface-tint": "#43655b", "on-primary-container": "#86aa9e", "on-background": "#171c23", "secondary-container": "#fc6955", "on-error": "#ffffff", "on-tertiary-fixed-variant": "#564500", "surface-bright": "#f8f9ff", "surface-container-low": "#f0f4fd", "primary": "#042921", "on-secondary-fixed": "#410000", "on-tertiary-fixed": "#231b00", "inverse-on-surface": "#edf1fb", "tertiary": "#725c06", "primary-fixed-dim": "#aacec2", "outline-variant": "#c1c8c4", "on-error-container": "#93000a", "on-primary": "#ffffff", "inverse-surface": "#2c3138", "on-surface": "#171c23", "surface-container-lowest": "#ffffff", "secondary-fixed-dim": "#ffb4a8", "on-secondary-container": "#690000", "on-tertiary": "#ffffff", "tertiary-container": "#c4a951", "secondary-fixed": "#ffdad4", "on-primary-fixed": "#002019", "on-secondary": "#ffffff", "primary-fixed": "#c5ebdd", "on-tertiary-container": "#4e3d00", "surface-dim": "#d6dae4", "on-secondary-fixed-variant": "#8c170e", "surface-variant": "#dee2ec", "error": "#ba1a1a", "on-primary-fixed-variant": "#2b4d44", "surface-container-highest": "#dee2ec", "background": "#f8f9ff", "tertiary-fixed-dim": "#e2c469", "primary-container": "#1d3f36", "error-container": "#ffdad6", "secondary": "#ae3123" }, "borderRadius": { "DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px" }, "spacing": { "gutter-lg": "2rem", "gutter": "1.5rem", "margin": "2rem", "margin-mobile": "1rem", "space-sm": "0.5rem", "space-xs": "0.25rem", "space-md": "1rem", "space-lg": "1.5rem", "space-xl": "2.5rem", "gutter-sm": "1rem" }, "fontFamily": { "headline-sm": [ "Plus Jakarta Sans" ], "body-md": [ "DM Sans" ], "headline-md": [ "Plus Jakarta Sans" ], "body-lg": [ "DM Sans" ], "headline-lg": [ "Plus Jakarta Sans" ], "body-sm": [ "DM Sans" ], "display-lg": [ "Plus Jakarta Sans" ], "display-lg-mobile": [ "Plus Jakarta Sans" ], "label-lg": [ "Plus Jakarta Sans" ], "label-md": [ "Plus Jakarta Sans" ], "headline-lg-mobile": [ "Plus Jakarta Sans" ], "label-sm": [ "Plus Jakarta Sans" ] }, "fontSize": { "headline-sm": [ "20px", { "lineHeight": "28px", "fontWeight": "600" } ], "body-md": [ "16px", { "lineHeight": "24px", "fontWeight": "400" } ], "headline-md": [ "24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700" } ], "body-lg": [ "18px", { "lineHeight": "28px", "fontWeight": "400" } ], "headline-lg": [ "32px", { "lineHeight": "40px", "letterSpacing": "-0.015em", "fontWeight": "700" } ], "body-sm": [ "14px", { "lineHeight": "20px", "fontWeight": "400" } ], "display-lg": [ "48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "800" } ], "display-lg-mobile": [ "34px", { "lineHeight": "42px", "letterSpacing": "-0.02em", "fontWeight": "800" } ], "label-lg": [ "15px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" } ], "label-md": [ "13px", { "lineHeight": "18px", "letterSpacing": "0.02em", "fontWeight": "600" } ], "headline-lg-mobile": [ "26px", { "lineHeight": "34px", "letterSpacing": "-0.01em", "fontWeight": "700" } ], "label-sm": [ "11px", { "lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "700" } ] } } } };</script></head><body class="bg-background font-body-md text-on-surface antialiased min-h-screen flex flex-col justify-between selection:bg-primary-fixed selection:text-on-primary-fixed"><header class="fixed top-0 left-0 right-0 z-50 bg-surface/85 backdrop-blur-md shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-20 w-full px-gutter-lg flex items-center justify-between"><div class="flex items-center gap-space-lg"><a class="group flex items-center gap-space-xs" data-path="salas" href="#"><span class="font-headline-md text-headline-md tracking-tight text-primary">MESA</span><span class="inline-flex items-center justify-center px-space-xs py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-headline-sm text-headline-sm leading-none">/21</span></a></div><nav class="hidden md:flex items-center gap-space-sm px-space-xs py-space-xs bg-surface-container-low rounded-full" data-active-classes="bg-surface-container-high text-on-surface font-label-md text-label-md rounded-full shadow-[0_1px_4px_rgba(0,0,0,0.04)]"><a class="px-space-md py-space-xs rounded-full font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-all" data-path="salas" href="#">Salas</a><a class="px-space-md py-space-xs rounded-full font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-all" data-path="ranking" href="#">Ranking</a><a class="px-space-md py-space-xs rounded-full font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-all" data-path="como-jogar" href="#">Como jogar</a></nav><div class="flex items-center gap-space-md"><div class="relative flex items-center gap-space-xs bg-surface-container-lowest px-space-md py-space-xs rounded-full shadow-[0_2px_8px_rgba(29,63,54,0.06)]"><span class="material-symbols-outlined text-tertiary text-[20px]">monetization_on</span><span class="font-label-lg text-label-lg text-on-surface">R$ 2.450</span><span class="relative flex h-2 w-2 ml-space-xs"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary-container opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-secondary"></span></span></div><div class="flex items-center gap-space-xs pl-space-xs rounded-full bg-surface-container-low hover:bg-surface-container-high transition-colors cursor-pointer py-1 pr-space-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><span class="font-label-md text-label-md text-on-surface lowercase pl-space-xs">andre</span><span class="material-symbols-outlined text-on-surface-variant text-[18px]">expand_more</span></div></div></div></header><main class="w-full pt-20 flex-1 flex flex-col bg-background"><div class="flex flex-col w-full">
+<div class="w-full max-w-[1440px] mx-auto px-gutter-lg py-space-md flex flex-col gap-space-md">
+<!-- Top Table Header Ribbon -->
+<div class="flex flex-col md:flex-row items-center justify-between gap-space-md bg-surface-container-lowest px-space-lg py-space-sm rounded-full shadow-[0_2px_12px_rgba(29,63,54,0.05)]">
+<div class="flex items-center gap-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary-container animate-pulse"></span>
+<span class="font-headline-sm text-headline-sm text-primary tracking-tight">Mesa dos Crias</span>
+<span class="px-space-xs py-0.5 rounded-full bg-surface-container-high font-label-sm text-label-sm text-on-surface-variant lowercase">casual</span>
+</div>
+<span class="text-outline-variant">•</span>
+<div class="flex items-center gap-space-xs text-on-surface-variant font-label-md text-label-md">
+<span class="material-symbols-outlined text-[18px]">group</span>
+<span>4/5 na mesa</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm">
+<div class="flex items-center gap-space-xs px-space-md py-1 rounded-full bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-tertiary text-[16px]">verified</span>
+<span>Regras: Dealer para no 17 suave • BJ paga 3:2</span>
+</div>
+<button class="flex items-center gap-space-xs px-space-md py-1.5 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-all active:scale-95" id="copy-link-btn" onclick="copyInvite()">
+<span class="material-symbols-outlined text-[17px]">share</span>
+<span id="copy-text">Convidar amigos</span>
+</button>
+<a class="flex items-center gap-space-xs px-space-md py-1.5 rounded-full bg-surface-container-low hover:bg-error-container hover:text-on-error-container text-on-surface-variant font-label-md text-label-md transition-colors" data-path="salas" href="#">
+<span class="material-symbols-outlined text-[17px]">logout</span>
+<span>Sair</span>
+</a>
+</div>
+</div>
+<!-- MAIN GAME FELT CANVAS -->
+<div class="relative w-full rounded-[48px] bg-[#1d3f36] p-space-lg shadow-[inset_0_4px_24px_rgba(0,0,0,0.4),0_20px_40px_-15px_rgba(4,41,33,0.35)] overflow-hidden flex flex-col items-center justify-between min-h-[640px]">
+<!-- Subtle Felt Texture & Decorative Watermark Lines -->
+<div class="absolute inset-0 pointer-events-none opacity-20">
+<svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<radialgradient cx="50%" cy="30%" id="feltGlow" r="65%">
+<stop offset="0%" stop-color="#2d5e52" stop-opacity="0.8"></stop>
+<stop offset="100%" stop-color="#142c26" stop-opacity="1"></stop>
+</radialgradient>
+</defs>
+<rect fill="url(#feltGlow)" height="100%" width="100%"></rect>
+<ellipse cx="50%" cy="45%" fill="none" rx="44%" ry="32%" stroke="#ffffff" stroke-dasharray="8 6" stroke-opacity="0.12" stroke-width="2"></ellipse>
+<ellipse cx="50%" cy="45%" fill="none" rx="36%" ry="25%" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1.5"></ellipse>
+<text fill="#ffffff" fill-opacity="0.1" font-family="Plus Jakarta Sans" font-size="28" font-weight="800" letter-spacing="0.25em" text-anchor="middle" x="50%" y="46%">MESA / 21 SOCIAL</text>
+<text fill="#ffffff" fill-opacity="0.08" font-family="DM Sans" font-size="12" font-weight="600" letter-spacing="0.15em" text-anchor="middle" x="50%" y="50%">BLACKJACK PAYS 3 TO 2 • CASUAL FRIENDS TABLE</text>
+</svg>
+</div>
+<!-- Table Chip Shoes & Deck Tray Area (Top Corner Elements) -->
+<div class="absolute top-space-md left-space-lg hidden lg:flex items-center gap-space-xs bg-[#153029]/80 px-space-md py-1.5 rounded-full text-primary-fixed font-label-sm text-label-sm shadow-inner">
+<span class="w-2 h-2 rounded-full bg-primary-fixed animate-ping"></span>
+<span>Baralho: 6 Decks (82% restante)</span>
+</div>
+<div class="absolute top-space-md right-space-lg hidden lg:flex items-center gap-space-sm bg-[#153029]/80 px-space-md py-1.5 rounded-full text-tertiary-fixed font-label-sm text-label-sm shadow-inner">
+<span class="material-symbols-outlined text-[16px] text-tertiary-fixed">savings</span>
+<span>Pote Atual da Mesa: R$ 350</span>
+</div>
+<!-- ==================== DEALER ZONE ==================== -->
+<div class="relative z-10 flex flex-col items-center mt-2">
+<!-- Friendly Geometric SVG Dealer Avatar -->
+<div class="relative flex flex-col items-center">
+<div class="w-20 h-20 rounded-full bg-[#f3efea] shadow-[0_8px_16px_rgba(0,0,0,0.25)] flex items-center justify-center relative overflow-hidden ring-4 ring-[#2c5349]">
+<svg class="w-18 h-18 text-primary" fill="none" viewbox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+<!-- Body / Suit -->
+<path d="M12 76C12 60 24 54 40 54C56 54 68 60 68 76" fill="#042921"></path>
+<!-- White Shirt V -->
+<path d="M34 54L40 68L46 54Z" fill="#F8F9FF"></path>
+<!-- Coral Bow Tie -->
+<path d="M36 56L44 60M44 56L36 60" stroke="#FC6955" stroke-linecap="round" stroke-width="4"></path>
+<circle cx="40" cy="58" fill="#FC6955" r="2.5"></circle>
+<!-- Face Head -->
+<circle cx="40" cy="34" fill="#FAD4C0" r="18"></circle>
+<!-- Hair -->
+<path d="M22 30C22 20 28 14 40 14C50 14 58 19 58 30C58 24 50 20 40 20C28 20 23 24 22 30Z" fill="#2C3138"></path>
+<!-- Round Glasses -->
+<circle cx="33" cy="34" fill="none" r="5" stroke="#171C23" stroke-width="2"></circle>
+<circle cx="47" cy="34" fill="none" r="5" stroke="#171C23" stroke-width="2"></circle>
+<path d="M38 34H42" stroke="#171C23" stroke-width="2"></path>
+<!-- Cheerful Eyes -->
+<circle cx="33" cy="34" fill="#171C23" r="1.5"></circle>
+<circle cx="47" cy="34" fill="#171C23" r="1.5"></circle>
+<!-- Warm Smile -->
+<path d="M36 42C38 44.5 42 44.5 44 42" stroke="#AE3123" stroke-linecap="round" stroke-width="2"></path>
+<!-- Cheeks -->
+<circle cx="28" cy="38" fill="#FC6955" fill-opacity="0.4" r="2.5"></circle>
+<circle cx="52" cy="38" fill="#FC6955" fill-opacity="0.4" r="2.5"></circle>
+</svg>
+</div>
+<span class="mt-1 px-space-sm py-0.5 rounded-full bg-[#132c25] text-primary-fixed-dim font-label-sm text-label-sm tracking-wide">
+            Clarice (Dealer)
+          </span>
+</div>
+<!-- Dealer Hand & Score Badge -->
+<div class="flex items-center gap-space-sm mt-3 relative">
+<!-- Dealer Score Pill -->
+<div class="absolute -top-3 left-1/2 -translate-x-1/2 z-20 px-space-md py-0.5 rounded-full bg-[#11241f] text-tertiary-fixed font-headline-sm text-headline-sm shadow-md flex items-center gap-1.5">
+<span class="font-body-sm text-body-sm text-tertiary-fixed-dim font-medium">Mão:</span>
+<span>11 / ?</span>
+</div>
+<!-- Cards Container Dealer -->
+<div class="flex items-center -space-x-4 pt-1">
+<!-- Card 1: Ace of Spades (Face Up) -->
+<div class="w-[84px] h-[120px] rounded-DEFAULT bg-[#ffffff] text-on-surface shadow-[0_8px_20px_-4px_rgba(0,0,0,0.35)] flex flex-col justify-between p-2.5 transform transition-transform hover:-translate-y-2 select-none relative overflow-hidden ring-1 ring-surface-variant/40">
+<div class="flex flex-col items-center leading-none">
+<span class="font-headline-md text-headline-md leading-none text-primary font-bold">A</span>
+<span class="text-base text-primary leading-none mt-0.5">♠</span>
+</div>
+<div class="self-center my-auto">
+<span class="text-3xl text-primary leading-none select-none">♠</span>
+</div>
+<div class="flex flex-col items-center leading-none rotate-180">
+<span class="font-headline-md text-headline-md leading-none text-primary font-bold">A</span>
+<span class="text-base text-primary leading-none mt-0.5">♠</span>
+</div>
+</div>
+<!-- Card 2: Face Down Geometric Indie Pattern -->
+<div class="w-[84px] h-[120px] rounded-DEFAULT bg-[#932314] shadow-[0_8px_20px_-4px_rgba(0,0,0,0.35)] p-1.5 select-none relative overflow-hidden ring-1 ring-[#ffdad4]/30 transform rotate-1">
+<div class="w-full h-full rounded-[10px] bg-[#7a1b0e] p-1 flex items-center justify-center border border-[#ffdad4]/20 relative">
+<!-- Geometric Card Back Pattern -->
+<svg class="w-full h-full opacity-60 text-secondary-fixed" fill="currentColor" viewbox="0 0 60 90">
+<defs>
+<pattern height="12" id="cardBackPattern" patternunits="userSpaceOnUse" width="12">
+<path d="M6 0L12 6L6 12L0 6Z" fill="currentColor" fill-opacity="0.3"></path>
+<circle cx="6" cy="6" fill="currentColor" r="1.5"></circle>
+</pattern>
+</defs>
+<rect fill="url(#cardBackPattern)" height="90" width="60"></rect>
+<rect fill="none" height="78" rx="6" stroke="currentColor" stroke-dasharray="3 2" stroke-width="1.5" width="48" x="6" y="6"></rect>
+<circle cx="30" cy="45" fill="#ae3123" r="10" stroke="currentColor" stroke-width="1.5"></circle>
+<text fill="#ffffff" font-family="Plus Jakarta Sans" font-size="9" font-weight="bold" text-anchor="middle" x="30" y="49">21</text>
+</svg>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- ==================== 5-SEAT SEMICIRCLE ARCHITECTURE ==================== -->
+<div class="w-full grid grid-cols-1 md:grid-cols-5 gap-space-md items-end justify-items-center mt-6 z-10 px-space-xs">
+<!-- SEAT 1: luigi21 -->
+<div class="flex flex-col items-center gap-space-xs w-full max-w-[190px]">
+<!-- Card Display -->
+<div class="flex items-center -space-x-5 mb-1">
+<!-- 8 of Diamonds -->
+<div class="w-[72px] h-[104px] rounded-DEFAULT bg-[#ffffff] shadow-[0_6px_16px_rgba(0,0,0,0.3)] flex flex-col justify-between p-2 transform -rotate-3 select-none">
+<div class="flex flex-col items-start leading-none">
+<span class="font-headline-sm text-headline-sm leading-none text-secondary font-bold">8</span>
+<span class="text-sm text-secondary leading-none">♦</span>
+</div>
+<span class="text-xl text-secondary self-center leading-none">♦</span>
+<div class="flex flex-col items-start leading-none rotate-180">
+<span class="font-headline-sm text-headline-sm leading-none text-secondary font-bold">8</span>
+<span class="text-sm text-secondary leading-none">♦</span>
+</div>
+</div>
+<!-- 10 of Clubs -->
+<div class="w-[72px] h-[104px] rounded-DEFAULT bg-[#ffffff] shadow-[0_6px_16px_rgba(0,0,0,0.3)] flex flex-col justify-between p-2 transform rotate-2 select-none">
+<div class="flex flex-col items-start leading-none">
+<span class="font-headline-sm text-headline-sm leading-none text-primary font-bold">10</span>
+<span class="text-sm text-primary leading-none">♣</span>
+</div>
+<span class="text-xl text-primary self-center leading-none">♣</span>
+<div class="flex flex-col items-start leading-none rotate-180">
+<span class="font-headline-sm text-headline-sm leading-none text-primary font-bold">10</span>
+<span class="text-sm text-primary leading-none">♣</span>
+</div>
+</div>
+</div>
+<!-- Value / State Pill -->
+<div class="px-space-md py-0.5 rounded-full bg-[#102721] text-surface-container font-headline-sm text-headline-sm shadow flex items-center gap-1">
+<span>18</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 rounded-full bg-surface-container-high/30 text-surface-dim uppercase">Parou</span>
+</div>
+<!-- Bet Chip & Player Capsule -->
+<div class="flex items-center gap-space-xs bg-[#122e26]/90 px-space-md py-1.5 rounded-full border border-white/5 w-full justify-between shadow-sm">
+<div class="flex items-center gap-1.5 min-w-0">
+<div class="w-6 h-6 rounded-full bg-[#fc6955] text-on-error flex items-center justify-center font-label-sm text-label-sm font-bold">L</div>
+<span class="font-label-md text-label-md text-surface truncate">luigi21</span>
+</div>
+<div class="flex items-center gap-1 text-tertiary-fixed font-label-sm text-label-sm shrink-0">
+<span class="material-symbols-outlined text-[14px]">toll</span>
+<span>R$ 50</span>
+</div>
+</div>
+</div>
+<!-- SEAT 2: ANDRE (VOCÊ - ACTIVE TURN!) -->
+<div class="relative flex flex-col items-center gap-space-xs w-full max-w-[220px] scale-105 -translate-y-2">
+<!-- Active Turn Spotlight Beam Effect -->
+<div class="absolute -inset-4 bg-primary-fixed/15 rounded-3xl blur-xl pointer-events-none"></div>
+<!-- Turn Marker Header -->
+<div class="relative z-10 flex items-center gap-1 px-space-md py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-md text-label-md font-bold shadow-lg animate-bounce">
+<span class="material-symbols-outlined text-[16px]">touch_app</span>
+<span>SUA VEZ DE JOGAR</span>
+</div>
+<!-- Andre's Cards -->
+<div class="relative z-10 flex items-center -space-x-5 my-1">
+<!-- 9 of Spades -->
+<div class="w-[80px] h-[116px] rounded-DEFAULT bg-[#ffffff] shadow-[0_10px_24px_rgba(0,0,0,0.4)] flex flex-col justify-between p-2.5 transform -rotate-4 select-none ring-2 ring-primary-fixed">
+<div class="flex flex-col items-start leading-none">
+<span class="font-headline-md text-headline-md leading-none text-primary font-bold">9</span>
+<span class="text-sm text-primary leading-none">♠</span>
+</div>
+<span class="text-2xl text-primary self-center leading-none">♠</span>
+<div class="flex flex-col items-start leading-none rotate-180">
+<span class="font-headline-md text-headline-md leading-none text-primary font-bold">9</span>
+<span class="text-sm text-primary leading-none">♠</span>
+</div>
+</div>
+<!-- 7 of Clubs -->
+<div class="w-[80px] h-[116px] rounded-DEFAULT bg-[#ffffff] shadow-[0_10px_24px_rgba(0,0,0,0.4)] flex flex-col justify-between p-2.5 transform rotate-3 select-none ring-2 ring-primary-fixed">
+<div class="flex flex-col items-start leading-none">
+<span class="font-headline-md text-headline-md leading-none text-primary font-bold">7</span>
+<span class="text-sm text-primary leading-none">♣</span>
+</div>
+<span class="text-2xl text-primary self-center leading-none">♣</span>
+<div class="flex flex-col items-start leading-none rotate-180">
+<span class="font-headline-md text-headline-md leading-none text-primary font-bold">7</span>
+<span class="text-sm text-primary leading-none">♣</span>
+</div>
+</div>
+</div>
+<!-- Total Score Indicator with Alert Tint for 16 -->
+<div class="relative z-10 px-space-md py-1 rounded-full bg-[#0a1f1a] text-tertiary-fixed font-headline-md text-headline-md shadow-xl flex items-center gap-space-xs ring-1 ring-tertiary/40">
+<span class="font-body-sm text-body-sm text-surface-dim font-medium">Total:</span>
+<span class="text-tertiary-fixed font-extrabold">16</span>
+<span class="font-label-sm text-label-sm text-secondary-fixed bg-secondary/60 px-1.5 py-0.5 rounded-full">Decisão crítica</span>
+</div>
+<!-- Player Chip Bar -->
+<div class="relative z-10 flex items-center gap-space-xs bg-[#0b241c] px-space-md py-2 rounded-full ring-2 ring-secondary-container w-full justify-between shadow-md">
+<div class="flex items-center gap-1.5 min-w-0">
+<div class="w-7 h-7 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-headline-sm text-headline-sm font-bold">A</div>
+<div class="flex flex-col leading-none min-w-0">
+<span class="font-label-md text-label-md text-surface font-bold truncate">andre</span>
+<span class="font-label-sm text-label-sm text-primary-fixed-dim">você</span>
+</div>
+</div>
+<div class="flex items-center gap-1 text-tertiary-fixed font-headline-sm text-headline-sm shrink-0">
+<span class="material-symbols-outlined text-[18px]">monetization_on</span>
+<span class="font-bold">R$ 100</span>
+</div>
+</div>
+</div>
+<!-- SEAT 3: STEF -->
+<div class="flex flex-col items-center gap-space-xs w-full max-w-[190px]">
+<!-- Stef's Cards: K♥ + Q♠ = 20 -->
+<div class="flex items-center -space-x-5 mb-1">
+<!-- King of Hearts -->
+<div class="w-[72px] h-[104px] rounded-DEFAULT bg-[#ffffff] shadow-[0_6px_16px_rgba(0,0,0,0.3)] flex flex-col justify-between p-2 transform -rotate-2 select-none">
+<div class="flex flex-col items-start leading-none">
+<span class="font-headline-sm text-headline-sm leading-none text-secondary font-bold">K</span>
+<span class="text-sm text-secondary leading-none">♥</span>
+</div>
+<span class="text-xl text-secondary self-center leading-none">♥</span>
+<div class="flex flex-col items-start leading-none rotate-180">
+<span class="font-headline-sm text-headline-sm leading-none text-secondary font-bold">K</span>
+<span class="text-sm text-secondary leading-none">♥</span>
+</div>
+</div>
+<!-- Queen of Spades -->
+<div class="w-[72px] h-[104px] rounded-DEFAULT bg-[#ffffff] shadow-[0_6px_16px_rgba(0,0,0,0.3)] flex flex-col justify-between p-2 transform rotate-1 select-none">
+<div class="flex flex-col items-start leading-none">
+<span class="font-headline-sm text-headline-sm leading-none text-primary font-bold">Q</span>
+<span class="text-sm text-primary leading-none">♠</span>
+</div>
+<span class="text-xl text-primary self-center leading-none">♠</span>
+<div class="flex flex-col items-start leading-none rotate-180">
+<span class="font-headline-sm text-headline-sm leading-none text-primary font-bold">Q</span>
+<span class="text-sm text-primary leading-none">♠</span>
+</div>
+</div>
+</div>
+<!-- Total Score -->
+<div class="px-space-md py-0.5 rounded-full bg-[#102721] text-surface-container font-headline-sm text-headline-sm shadow flex items-center gap-1">
+<span class="text-tertiary-fixed font-bold">20</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 rounded-full bg-[#275347] text-primary-fixed uppercase">Parou</span>
+</div>
+<!-- Stef Info -->
+<div class="flex items-center gap-space-xs bg-[#122e26]/90 px-space-md py-1.5 rounded-full border border-white/5 w-full justify-between shadow-sm">
+<div class="flex items-center gap-1.5 min-w-0">
+<div class="w-6 h-6 rounded-full bg-[#e2c469] text-on-tertiary-container flex items-center justify-center font-label-sm text-label-sm font-bold">S</div>
+<span class="font-label-md text-label-md text-surface truncate">stef</span>
+</div>
+<div class="flex items-center gap-1 text-tertiary-fixed font-label-sm text-label-sm shrink-0">
+<span class="material-symbols-outlined text-[14px]">toll</span>
+<span>R$ 150</span>
+</div>
+</div>
+</div>
+<!-- SEAT 4: RAFA -->
+<div class="flex flex-col items-center gap-space-xs w-full max-w-[190px]">
+<!-- Rafa's Cards: 10♦ + 6♠ = 16 -->
+<div class="flex items-center -space-x-5 mb-1">
+<!-- 10 of Diamonds -->
+<div class="w-[72px] h-[104px] rounded-DEFAULT bg-[#ffffff] shadow-[0_6px_16px_rgba(0,0,0,0.3)] flex flex-col justify-between p-2 transform -rotate-1 select-none">
+<div class="flex flex-col items-start leading-none">
+<span class="font-headline-sm text-headline-sm leading-none text-secondary font-bold">10</span>
+<span class="text-sm text-secondary leading-none">♦</span>
+</div>
+<span class="text-xl text-secondary self-center leading-none">♦</span>
+<div class="flex flex-col items-start leading-none rotate-180">
+<span class="font-headline-sm text-headline-sm leading-none text-secondary font-bold">10</span>
+<span class="text-sm text-secondary leading-none">♦</span>
+</div>
+</div>
+<!-- 6 of Spades -->
+<div class="w-[72px] h-[104px] rounded-DEFAULT bg-[#ffffff] shadow-[0_6px_16px_rgba(0,0,0,0.3)] flex flex-col justify-between p-2 transform rotate-4 select-none">
+<div class="flex flex-col items-start leading-none">
+<span class="font-headline-sm text-headline-sm leading-none text-primary font-bold">6</span>
+<span class="text-sm text-primary leading-none">♠</span>
+</div>
+<span class="text-xl text-primary self-center leading-none">♠</span>
+<div class="flex flex-col items-start leading-none rotate-180">
+<span class="font-headline-sm text-headline-sm leading-none text-primary font-bold">6</span>
+<span class="text-sm text-primary leading-none">♠</span>
+</div>
+</div>
+</div>
+<!-- Total Score -->
+<div class="px-space-md py-0.5 rounded-full bg-[#102721] text-surface-container font-headline-sm text-headline-sm shadow flex items-center gap-1">
+<span>16</span>
+<span class="font-label-sm text-label-sm px-1.5 py-0.2 rounded-full bg-surface-container-high/30 text-surface-dim uppercase">Aguardando</span>
+</div>
+<!-- Rafa Info -->
+<div class="flex items-center gap-space-xs bg-[#122e26]/90 px-space-md py-1.5 rounded-full border border-white/5 w-full justify-between shadow-sm">
+<div class="flex items-center gap-1.5 min-w-0">
+<div class="w-6 h-6 rounded-full bg-[#aacec2] text-on-primary-fixed flex items-center justify-center font-label-sm text-label-sm font-bold">R</div>
+<span class="font-label-md text-label-md text-surface truncate">rafa</span>
+</div>
+<div class="flex items-center gap-1 text-tertiary-fixed font-label-sm text-label-sm shrink-0">
+<span class="material-symbols-outlined text-[14px]">toll</span>
+<span>R$ 50</span>
+</div>
+</div>
+</div>
+<!-- SEAT 5: EMPTY SEAT -->
+<div class="flex flex-col items-center justify-end w-full max-w-[190px] h-full pb-2">
+<button class="w-full h-32 rounded-2xl border-2 border-dashed border-white/20 hover:border-primary-fixed/60 hover:bg-white/5 transition-all flex flex-col items-center justify-center gap-space-xs text-primary-fixed-dim hover:text-white group" onclick="inviteModal()">
+<div class="w-10 h-10 rounded-full bg-white/10 group-hover:bg-primary-fixed group-hover:text-primary transition-colors flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px]">person_add</span>
+</div>
+<span class="font-label-md text-label-md font-semibold">+ Lugar livre</span>
+<span class="font-label-sm text-label-sm text-surface-dim/60">Convidar amigo</span>
+</button>
+</div>
+</div>
+<!-- Live Chat Bar Ticker (Floating Subtle Notification within Felt) -->
+<div class="w-full flex items-center justify-between text-primary-fixed-dim font-body-sm text-body-sm pt-space-md mt-space-md border-t border-white/5">
+<div class="flex items-center gap-space-xs truncate">
+<span class="material-symbols-outlined text-[18px] text-tertiary-fixed">chat_bubble</span>
+<span class="font-bold text-surface">stef:</span>
+<span class="truncate">"Boa André! 16 é a mão do perigo, pede mais uma ou segura?"</span>
+</div>
+<div class="hidden sm:flex items-center gap-space-md text-label-sm font-label-sm shrink-0">
+<span>Tempo de ação: <strong class="text-secondary-fixed" id="timer-val">14s</strong></span>
+<div class="w-24 h-2 bg-black/40 rounded-full overflow-hidden">
+<div class="w-3/4 h-full bg-secondary-container transition-all duration-1000" id="turn-progress"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- ==================== CONTEXTUAL ACTION CONTROLS DOCK ==================== -->
+<div class="w-full bg-surface-container-lowest p-space-md rounded-3xl shadow-[0_8px_30px_rgba(29,63,54,0.08)] flex flex-col lg:flex-row items-center justify-between gap-space-md">
+<!-- Player Context & Balance Quick View -->
+<div class="flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-headline-md text-headline-md">
+          A
+        </div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-sm text-headline-sm text-on-surface">Sua jogada</span>
+<span class="px-space-xs py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm font-bold">16 Pontos</span>
+</div>
+<div class="flex items-center gap-space-xs text-on-surface-variant font-body-sm text-body-sm">
+<span>Saldo disponível: <strong class="text-on-surface font-semibold">R$ 2.450</strong></span>
+<span>•</span>
+<span>Aposta na mesa: <strong class="text-tertiary font-bold">R$ 100</strong></span>
+</div>
+</div>
+</div>
+<!-- Primary Decision Buttons Dock -->
+<div class="flex items-center flex-wrap justify-center gap-space-sm sm:gap-space-md">
+<!-- HIT (PEDIR CARTA) - Primary Emerald -->
+<button class="group relative px-space-xl py-3 rounded-full bg-[#042921] hover:bg-[#1d3f36] text-on-primary font-headline-sm text-headline-sm font-bold shadow-[0_6px_20px_rgba(4,41,33,0.3)] transition-all transform active:scale-95 hover:-translate-y-0.5 flex items-center gap-space-xs" id="btn-hit" onclick="playerHit()">
+<span class="material-symbols-outlined text-[24px] text-primary-fixed group-hover:rotate-12 transition-transform">add_circle</span>
+<span>Pedir Carta</span>
+<span class="font-label-sm text-label-sm font-normal text-primary-fixed-dim bg-white/10 px-2 py-0.5 rounded-full ml-1">[H]</span>
+</button>
+<!-- STAND (PARAR) - Warm Amber / Coral -->
+<button class="group px-space-xl py-3 rounded-full bg-secondary hover:bg-[#8c170e] text-on-secondary font-headline-sm text-headline-sm font-bold shadow-[0_6px_20px_rgba(174,49,35,0.25)] transition-all transform active:scale-95 hover:-translate-y-0.5 flex items-center gap-space-xs" id="btn-stand" onclick="playerStand()">
+<span class="material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform">front_hand</span>
+<span>Parar (16)</span>
+<span class="font-label-sm text-label-sm font-normal text-secondary-fixed bg-black/20 px-2 py-0.5 rounded-full ml-1">[S]</span>
+</button>
+<!-- DOUBLE (DOBRAR) -->
+<button class="px-space-lg py-3 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface font-label-lg text-label-lg font-bold transition-all active:scale-95 flex items-center gap-space-xs" id="btn-double" onclick="playerDouble()">
+<span class="material-symbols-outlined text-[20px] text-tertiary">exposure_plus_2</span>
+<span>Dobrar (+R$ 100)</span>
+</button>
+<!-- SPLIT (DIVIDIR - DISABLED) -->
+<button class="px-space-lg py-3 rounded-full bg-surface-container-low text-outline-variant font-label-lg text-label-lg cursor-not-allowed opacity-60 flex items-center gap-space-xs" disabled="" title="Você precisa de duas cartas de mesmo valor para dividir">
+<span class="material-symbols-outlined text-[20px]">call_split</span>
+<span>Dividir</span>
+</button>
+</div>
+<!-- Quick Social Emoji Floater -->
+<div class="flex items-center gap-1 bg-surface-container-low p-1.5 rounded-full">
+<button class="w-9 h-9 rounded-full hover:bg-surface-container-lowest transition-transform hover:scale-110 flex items-center justify-center text-lg" onclick="sendEmoji('👏')">👏</button>
+<button class="w-9 h-9 rounded-full hover:bg-surface-container-lowest transition-transform hover:scale-110 flex items-center justify-center text-lg" onclick="sendEmoji('🔥')">🔥</button>
+<button class="w-9 h-9 rounded-full hover:bg-surface-container-lowest transition-transform hover:scale-110 flex items-center justify-center text-lg" onclick="sendEmoji('👀')">👀</button>
+<button class="w-9 h-9 rounded-full hover:bg-surface-container-lowest transition-transform hover:scale-110 flex items-center justify-center text-lg" onclick="sendEmoji('🍀')">🍀</button>
+</div>
+</div>
+<!-- Notification Toast Element (Hidden by Default) -->
+<div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none px-space-lg py-space-sm rounded-full bg-inverse-surface text-inverse-on-surface font-label-md text-label-md shadow-2xl flex items-center gap-space-xs" id="game-toast">
+<span class="material-symbols-outlined text-secondary-container" id="toast-icon">info</span>
+<span id="toast-message">Ação realizada!</span>
+</div>
+</div>
+</div>
+<script>
+  function showToast(message, icon = 'info') {
+    const toast = document.getElementById('game-toast');
+    const msgElem = document.getElementById('toast-message');
+    const iconElem = document.getElementById('toast-icon');
+    
+    if (toast && msgElem && iconElem) {
+      msgElem.textContent = message;
+      iconElem.textContent = icon;
+      toast.classList.remove('translate-y-24', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-24', 'opacity-0');
+      }, 2500);
+    }
+  }
+
+  function playerHit() {
+    showToast('Você pediu mais uma carta! Puxando do sapato...', 'add_circle');
+  }
+
+  function playerStand() {
+    showToast('Você parou no 16. Vez do jogador Rafa...', 'front_hand');
+  }
+
+  function playerDouble() {
+    showToast('Aposta dobrada para R$ 200! Puxando carta final...', 'monetization_on');
+  }
+
+  function sendEmoji(emoji) {
+    showToast(`Você enviou a reação ${emoji} para a mesa!`, 'sentiment_satisfied');
+  }
+
+  function copyInvite() {
+    const copyText = document.getElementById('copy-text');
+    navigator.clipboard?.writeText(window.location.href);
+    if (copyText) {
+      copyText.textContent = 'Link copiado!';
+      setTimeout(() => {
+        copyText.textContent = 'Convidar amigos';
+      }, 2000);
+    }
+    showToast('Link da mesa copiado! Chame os amigos.', 'check_circle');
+  }
+
+  function inviteModal() {
+    copyInvite();
+  }
+
+  // Keyboard accessibility for Blackjack decisions
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'h' || e.key === 'H') {
+      playerHit();
+    } else if (e.key === 's' || e.key === 'S') {
+      playerStand();
+    }
+  });
+
+  // Simple Timer Simulation
+  let countdown = 14;
+  const timerElem = document.getElementById('timer-val');
+  const progressElem = document.getElementById('turn-progress');
+  
+  setInterval(() => {
+    if (countdown > 0) {
+      countdown--;
+      if (timerElem) timerElem.textContent = countdown + 's';
+      if (progressElem) progressElem.style.width = ((countdown / 15) * 100) + '%';
+    } else {
+      countdown = 15;
+    }
+  }, 1000);
+</script></main><footer class="w-full bg-surface-container-low py-space-lg"><div class="w-full px-gutter-lg flex flex-col sm:flex-row items-center justify-between gap-space-md"><div class="flex items-center gap-space-xs"><span class="font-headline-sm text-headline-sm text-primary">MESA/21</span><span class="font-body-sm text-body-sm text-on-surface-variant">— Blackjack social despretensioso entre amigos.</span></div><div class="flex items-center gap-space-lg font-body-sm text-body-sm text-on-surface-variant"><span>Fichas virtuais sem valor monetário real.</span><span>© 2025 MESA/21</span></div></div></footer></body></html>
