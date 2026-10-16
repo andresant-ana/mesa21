@@ -80,7 +80,7 @@ export class GameSession {
 
       if (url.pathname === "/game/action") {
         const action = body.action;
-        if (action !== "hit" && action !== "stand" && action !== "double") return json({ error: "INVALID_ACTION" }, 400);
+        if (action !== "hit" && action !== "stand" && action !== "double" && action !== "split") return json({ error: "INVALID_ACTION" }, 400);
         if (!state.game) return json({ error: "NO_ACTIVE_ROUND" }, 409);
         state.game = applyAction(state.game, action as Action);
         state.casualCredits = state.game.balance;

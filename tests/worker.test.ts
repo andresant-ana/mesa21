@@ -199,3 +199,34 @@ test("rejeita JSON null sem gerar erro interno ou modificar saldo", async () => 
   }), env as never);
   assert.equal((await after.json() as { casualCredits: number }).casualCredits, 2_000);
 });
+
+
+test("API expõe duas mãos do split, oculta carta fechada e não aceita saldo do cliente", async () => {
+  const store = new Map<string, unknown>();
+  const state = { storage: {
+    async get<T>(key: string) { return store.get(key) as T | undefined; },
+    async put<T>(key: string, value: T) { store.set(key, value); }
+  }};
+  const game = createGame(2_000, 100, [
+    { rank: "8", suit: "hearts" }, { rank: "6", suit: "clubs" },
+    { rank: "8", suit: "spades" }, { rank: "10", suit: "clubs" },
+    { rank: "3", suit: "diamonds" }, { rank: "2", suit: "hearts" },
+    { rank: "5", suit: "clubs" }
+  ]);
+  store.set("session", { casualCredits: game.balance, game });
+  const session = new GameSession(state, {} as never);
+  const response = await session.fetch(new Request("https://internal/game/action", {
+    method: "POST",
+    body: JSON.stringify({ action: "split", balance: 999_999 })
+  }));
+  assert.equal(response.status, 200);
+  const data = await response.json() as {
+    casualCredits: number;
+    game: { secondaryHand: { cards: unknown[] }; dealerCards: unknown[]; canSplit: boolean }
+  };
+  assert.equal(data.casualCredits, 1_800);
+  assert.equal(data.game.secondaryHand.cards.length, 2);
+  assert.equal(data.game.dealerCards[1], null);
+  assert.equal(data.game.canSplit, false);
+  assert.equal("shoe" in data.game, false);
+});

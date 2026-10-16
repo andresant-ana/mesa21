@@ -2,6 +2,7 @@ import "./styles.css";
 
 type Suit = "clubs" | "diamonds" | "hearts" | "spades";
 type Card = { rank: string; suit: Suit };
+type SecondaryHand = { cards: Card[]; bet: number; total: number; result: "blackjack" | "win" | "loss" | "push" | "bust" | null };
 type PublicGame = {
   balance: number;
   casualCredits: number;
@@ -13,6 +14,9 @@ type PublicGame = {
   playerTotal: number;
   dealerTotal: number | null;
   canDouble: boolean;
+  canSplit: boolean;
+  activeHand: 0 | 1;
+  secondaryHand: SecondaryHand | null;
 };
 type Session = { casualCredits: number; rankedPoints: null; game: PublicGame | null };
 
@@ -28,6 +32,7 @@ const betControls = required<HTMLElement>("bet-controls");
 const hitButton = required<HTMLButtonElement>("hit");
 const standButton = required<HTMLButtonElement>("stand");
 const doubleButton = required<HTMLButtonElement>("double");
+const splitButton = required<HTMLButtonElement>("split");
 const newRoundButton = required<HTMLButtonElement>("new-round");
 const refillButton = required<HTMLButtonElement>("refill");
 let currentCredits = 0;
@@ -80,6 +85,7 @@ function renderGame(game: PublicGame | null): void {
     dealerCardsElement.replaceChildren(hint("Dê início à rodada quando estiver pronto."));
     playerCardsElement.replaceChildren(emptyCard(), emptyCard());
     dealerTotalElement.textContent = "";
+    playerTotalElement.hidden = false;
     playerTotalElement.textContent = "";
     messageElement.textContent = "Uma mesa simples, só para você.";
     setActions(false, false);
@@ -89,28 +95,80 @@ function renderGame(game: PublicGame | null): void {
   }
 
   dealerCardsElement.replaceChildren(...game.dealerCards.map((card) => card ? playingCard(card) : cardBack()));
-  playerCardsElement.replaceChildren(...game.playerCards.map(playingCard));
+  if (game.secondaryHand) {
+    playerCardsElement.replaceChildren(
+      splitHandView(1, game.playerCards, game.playerTotal, game.bet, game.result, game.activeHand === 0 && game.phase === "player"),
+      splitHandView(2, game.secondaryHand.cards, game.secondaryHand.total, game.secondaryHand.bet, game.secondaryHand.result, game.activeHand === 1 && game.phase === "player")
+    );
+    playerTotalElement.hidden = true;
+  } else {
+    playerCardsElement.replaceChildren(...game.playerCards.map(playingCard));
+    playerTotalElement.hidden = false;
+  }
   dealerTotalElement.textContent = game.dealerTotal === null ? "" : String(game.dealerTotal);
   playerTotalElement.textContent = String(game.playerTotal);
   betElement.disabled = busy || game.phase === "player";
   newRoundButton.disabled = busy || game.phase === "player" || currentCredits < 10;
 
   if (game.phase === "player") {
-    messageElement.textContent = "Sua vez. Peça uma carta, pare ou dobre a aposta.";
-    setActions(true, game.canDouble);
+    messageElement.textContent = game.secondaryHand
+      ? "Sua vez: mão " + (game.activeHand + 1) + " de 2."
+      : "Sua vez. Peça uma carta, pare ou dobre a aposta.";
+    setActions(true, game.canDouble, game.canSplit);
   } else {
     setActions(false, false);
-    messageElement.textContent = resultMessage(game.result);
+    messageElement.textContent = game.secondaryHand
+      ? "Mão 1: " + shortResult(game.result) + " · Mão 2: " + shortResult(game.secondaryHand.result) + "."
+      : resultMessage(game.result);
   }
 }
 
-function setActions(enabled: boolean, canDouble: boolean): void {
+function setActions(enabled: boolean, canDouble: boolean, canSplit = false): void {
   hitButton.hidden = !enabled;
   standButton.hidden = !enabled;
   doubleButton.hidden = !enabled || !canDouble;
+  splitButton.hidden = !enabled || !canSplit;
   hitButton.disabled = busy || !enabled;
   standButton.disabled = busy || !enabled;
   doubleButton.disabled = busy || !canDouble;
+  splitButton.disabled = busy || !canSplit;
+}
+
+function splitHandView(
+  number: number,
+  cards: Card[],
+  total: number,
+  wager: number,
+  result: PublicGame["result"],
+  active: boolean
+): HTMLElement {
+  const group = document.createElement("div");
+  group.className = "split-hand" + (active ? " is-active" : "");
+  const label = document.createElement("div");
+  label.className = "split-hand-label";
+  label.textContent = "Mão " + number + " · " + total + " pontos · " + wager + " créditos";
+  const row = document.createElement("div");
+  row.className = "split-hand-cards";
+  row.append(...cards.map(playingCard));
+  group.append(label, row);
+  if (result) {
+    const badge = document.createElement("span");
+    badge.className = "split-hand-result";
+    badge.textContent = shortResult(result);
+    group.append(badge);
+  }
+  return group;
+}
+
+function shortResult(result: PublicGame["result"]): string {
+  switch (result) {
+    case "blackjack": return "Blackjack";
+    case "win": return "Vitória";
+    case "loss": return "Derrota";
+    case "bust": return "Estourou";
+    case "push": return "Empate";
+    default: return "Em andamento";
+  }
 }
 
 function playingCard(card: Card): HTMLElement {
@@ -210,6 +268,7 @@ function friendlyError(code: string): string {
 hitButton.addEventListener("click", () => void perform("/api/game/action", { action: "hit" }));
 standButton.addEventListener("click", () => void perform("/api/game/action", { action: "stand" }));
 doubleButton.addEventListener("click", () => void perform("/api/game/action", { action: "double" }));
+splitButton.addEventListener("click", () => void perform("/api/game/action", { action: "split" }));
 newRoundButton.addEventListener("click", () => void perform("/api/game/start", { bet: Number(betElement.value) }));
 refillButton.addEventListener("click", () => void perform("/api/game/refill", {}));
 window.addEventListener("keydown", (event) => {
@@ -217,5 +276,7 @@ window.addEventListener("keydown", (event) => {
   const key = event.key.toLowerCase();
   if (key === "h" && !hitButton.disabled) hitButton.click();
   if (key === "s" && !standButton.disabled) standButton.click();
+  if (key === "d" && !doubleButton.disabled) doubleButton.click();
+  if (key === "v" && !splitButton.disabled) splitButton.click();
 });
 void loadSession();

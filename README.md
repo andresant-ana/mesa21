@@ -6,14 +6,14 @@ Blackjack solo, gratuito e leve, com créditos exclusivamente fictícios e ident
 
 - Cliente HTML/CSS/TypeScript responsivo, sem framework de interface.
 - Cloudflare Worker + Durable Object: sessão visitante e estado da partida no servidor.
-- Motor de seis baralhos, cartas embaralhadas com fonte criptográfica, natural 3:2, hit, stand, double, empate e dealer para em soft 17.
+- Motor de seis baralhos, cartas embaralhadas com fonte criptográfica, natural 3:2, hit, stand, double, split, empate e dealer para em soft 17.
 - Créditos casuais separados; API não aceita cartas, saldo ou resultado informados pelo navegador.
 - Clarice em SVG inline e cartas desenhadas com CSS; sem imagens raster ou CDN de ícones.
 - Testes determinísticos e CI com checagem estrita de tipos.
 
 ### Ainda não implementado
 
-Contas, autenticação, recuperação entre dispositivos, multiplayer, salas reais, chat, split, ranking global, créditos classificatórios, protocolo de fairness verificável, deploy público e proteção operacional contra abuso automatizado. O saldo de visitante depende do cookie; limpar cookies perde a sessão, e criar várias sessões não é impedido.
+Contas, autenticação, recuperação entre dispositivos, multiplayer, salas reais, chat, ranking global, créditos classificatórios, protocolo de fairness verificável, deploy público e proteção operacional contra abuso automatizado. O saldo de visitante depende do cookie; limpar cookies perde a sessão, e criar várias sessões não é impedido.
 
 ## Rodar localmente
 
