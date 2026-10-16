@@ -1,0 +1,48 @@
+.room-nav { display: flex; align-items: center; gap: 8px; }
+.room-nav-link { padding: 10px 16px; border-radius: 999px; color: #50645b; font-size: 14px; font-weight: 700; text-decoration: none; }
+.room-nav-link:hover, .room-nav-link.active { background: #ebeee8; color: #1d3f36; }
+.rooms-main h2 { margin: 0; font: 800 23px "Plus Jakarta Sans", sans-serif; letter-spacing: -.035em; }
+.rooms-main h3 { margin: 0 0 12px; font: 800 18px "Plus Jakarta Sans", sans-serif; }
+.directory-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(290px, 350px); align-items: start; gap: 22px; padding-bottom: 25px; }
+.directory-main, .directory-side, .room-seats, .room-invite { min-width: 0; }
+.section-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 16px; }
+.room-list { display: grid; gap: 10px; }
+.room-list-item, .room-form, .room-seats, .room-invite { border: 1px solid #e9e7df; border-radius: 24px; background: #fffdfa; box-shadow: 0 8px 28px rgba(29,63,54,.035); }
+.room-list-item { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 20px; }
+.room-list-copy { display: grid; gap: 7px; }
+.room-list-copy strong { color: #183b32; font: 700 16px "Plus Jakarta Sans", sans-serif; }
+.room-list-copy span { color: #68766e; font-size: 13px; }
+.room-empty { padding: 26px; background: #f0f4ed; border-radius: 20px; color: #40594f; }
+.directory-side { display: grid; gap: 14px; }
+.room-form { display: grid; gap: 12px; padding: 24px; }
+.room-form p, .room-invite p, .room-detail-header p { margin: 0; line-height: 1.55; color: #6d746f; font-size: 14px; }
+.room-form label, .room-invite label { font-size: 13px; font-weight: 700; color: #41554b; }
+.room-form input, .room-form select, .room-invite input { min-width: 0; width: 100%; min-height: 44px; border: 1px solid #deded6; border-radius: 14px; padding: 11px 13px; background: #fdfcf8; font: 500 14px "DM Sans", sans-serif; color: #24382f; }
+.room-form input:focus-visible, .room-form select:focus-visible, .room-invite input:focus-visible { outline: 3px solid #b6e7cf; outline-offset: 1px; }
+.room-hint { color: #68766e; font-size: 12px !important; line-height: 1.5; }
+.room-detail-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 22px 0; }
+.room-detail-header h2 { margin: 7px 0; }
+.room-back { text-decoration: none; color: #335a4d; font-weight: 700; }
+.room-detail-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr); gap: 20px; padding-bottom: 32px; }
+.room-seats, .room-invite { padding: 26px; }
+.room-members { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 18px 0; }
+.room-seat { display: flex; align-items: center; gap: 11px; min-height: 75px; padding: 13px; border: 1px solid #e4ebe2; border-radius: 18px; background: #f4f7f1; font-size: 13px; font-weight: 700; color: #315448; }
+.room-seat.is-empty { color: #7b8c82; font-weight: 500; border-style: dashed; background: transparent; }
+.seat-avatar { display: grid; place-items: center; border-radius: 50%; background: #d8ede0; color: #23473c; width: 35px; height: 35px; flex: 0 0 auto; font-weight: 800; }
+.room-invite #join-area, .room-invite #invite-area { display: grid; gap: 13px; }
+.room-solo-link { display: inline-flex; align-items: center; margin-top: 12px; text-decoration: none; }
+#room-spectators { font-size: 13px; color: #697a70; }
+@media(max-width:840px) {
+  .directory-layout, .room-detail-layout { grid-template-columns: 1fr; }
+  .directory-side { grid-template-columns: repeat(2,minmax(0,1fr)); align-items: start; }
+}
+@media(max-width:590px) {
+  .room-nav { gap: 2px; }
+  .room-nav-link { font-size: 12px; padding: 8px; }
+  .topbar > .mode-pill { display: none; }
+  .directory-side { grid-template-columns: 1fr; }
+  .room-members { grid-template-columns: 1fr; }
+  .room-list-item { padding: 15px; }
+  .room-list-item .button { padding-inline: 11px; }
+  .room-detail-header { align-items: flex-start; flex-direction: column; }
+}

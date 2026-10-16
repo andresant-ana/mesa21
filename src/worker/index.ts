@@ -1,6 +1,7 @@
 import type { Env } from "./types.ts";
 
 export { GameSession } from "./GameSession.ts";
+export { RoomLobby } from "./RoomLobby.ts";
 
 const SESSION_COOKIE = "mesa21_session";
 
@@ -9,6 +10,18 @@ export default {
     const url = new URL(request.url);
     if (!url.pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
     if (!["GET", "POST"].includes(request.method)) return apiJson({ error: "METHOD_NOT_ALLOWED" }, 405);
+
+    const isRoomRequest = url.pathname === "/api/rooms" || url.pathname.startsWith("/api/rooms/");
+    const isSocketRequest = isRoomRequest && url.pathname.endsWith("/stream");
+    if (isSocketRequest) {
+      const origin = request.headers.get("origin");
+      const allowedOrigins = new Set([url.origin, ...env.ALLOWED_ORIGINS.split(",").map((value) => value.trim()).filter(Boolean)]);
+      if (!origin || !allowedOrigins.has(origin)) return apiJson({ error: "ORIGIN_NOT_ALLOWED" }, 403);
+      if (request.headers.get("upgrade")?.toLowerCase() !== "websocket") {
+        return apiJson({ error: "UPGRADE_REQUIRED" }, 426);
+      }
+      if (!getCookie(request.headers.get("cookie"), SESSION_COOKIE)) return apiJson({ error: "UNAUTHORIZED" }, 401);
+    }
 
     let requestBody: ArrayBuffer | null = null;
     if (request.method === "POST") {
@@ -24,29 +37,37 @@ export default {
     }
 
     const token = getCookie(request.headers.get("cookie"), SESSION_COOKIE) ?? createSessionToken();
-    const id = env.GAME_SESSIONS.idFromName(token);
-    const stub = env.GAME_SESSIONS.get(id);
+    const namespace = isRoomRequest ? env.ROOM_LOBBY : env.GAME_SESSIONS;
+    const id = namespace.idFromName(isRoomRequest ? "global-v1" : token);
+    const stub = namespace.get(id);
+    const headers = new Headers(request.headers);
+    // Never trust client-supplied identity forwarding headers.
+    headers.delete("x-mesa21-session");
+    if (isRoomRequest) headers.set("x-mesa21-session", token);
     let response: Response;
     try {
       response = await stub.fetch(new Request("https://mesa21.internal" + url.pathname.replace(/^\/api/, ""), {
         method: request.method,
-        headers: request.headers,
+        headers,
         body: requestBody
       }));
     } catch {
       return apiJson({ error: "SERVICE_UNAVAILABLE" }, 503);
     }
 
-    const headers = new Headers(response.headers);
-    headers.set("Cache-Control", "no-store");
-    headers.set("X-Content-Type-Options", "nosniff");
-    headers.set("Referrer-Policy", "same-origin");
+    // WebSocket upgrade responses must retain the Cloudflare webSocket handle.
+    if (isSocketRequest && response.status === 101) return response;
+
+    const responseHeaders = new Headers(response.headers);
+    responseHeaders.set("Cache-Control", "no-store");
+    responseHeaders.set("X-Content-Type-Options", "nosniff");
+    responseHeaders.set("Referrer-Policy", "same-origin");
     if (!getCookie(request.headers.get("cookie"), SESSION_COOKIE)) {
       // Enforce Secure on HTTPS regardless of the deployment environment flag.
       const secure = url.protocol === "https:" ? "; Secure" : "";
-      headers.append("Set-Cookie", SESSION_COOKIE + "=" + token + "; Path=/; HttpOnly; SameSite=Strict; Max-Age=2592000" + secure);
+      responseHeaders.append("Set-Cookie", SESSION_COOKIE + "=" + token + "; Path=/; HttpOnly; SameSite=Strict; Max-Age=2592000" + secure);
     }
-    return new Response(response.body, { status: response.status, headers });
+    return new Response(response.body, { status: response.status, headers: responseHeaders });
   }
 };
 
