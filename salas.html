@@ -59,7 +59,7 @@
             <h3>Quem tá na mesa?</h3>
             <div id="room-members" class="room-members" aria-live="polite"></div>
             <p id="room-spectators"></p>
-            <p class="room-hint">Salas e convites estão funcionais. A partida multiplayer ainda está em desenvolvimento; o blackjack solo permanece disponível.</p>
+            <p class="room-hint">Joguem juntos contra a Clarice. Até cinco jogadores, cada um com sua mão e seus créditos fictícios.</p>
             <a class="button button-soft room-solo-link" href="/">Jogar solo enquanto espera →</a>
           </div>
           <div class="room-invite">
@@ -77,6 +77,36 @@
               <p id="connection-state" class="room-hint" role="status"></p>
             </div>
           </div>
+        </div>
+      </section>
+      <section id="game-area" class="room-game" aria-label="Partida de blackjack multiplayer" hidden>
+        <div class="section-heading"><h2>Partida em grupo</h2><span id="game-credits" class="mode-pill"></span></div>
+        <p id="game-status" class="intro-copy" role="status" aria-live="polite"></p>
+        <div class="room-game-table">
+          <div class="room-game-dealer">
+            <span class="eyebrow light">CLARICE · DEALER</span>
+            <div id="social-dealer-cards" class="room-game-cards"></div>
+          </div>
+          <div id="social-player-hands" class="room-game-hands"></div>
+        </div>
+        <div class="room-game-actions">
+          <button id="game-start" class="button button-primary" type="button" hidden>Começar rodada</button>
+          <div id="game-betting" hidden>
+            <label for="game-wager">Sua aposta</label>
+            <select id="game-wager">
+              <option value="10">10 créditos</option><option value="20">20 créditos</option>
+              <option value="50" selected>50 créditos</option><option value="100">100 créditos</option>
+            </select>
+            <button id="game-bet" type="button" class="button button-primary">Confirmar aposta</button>
+          </div>
+          <button id="game-deal" type="button" class="button button-soft" hidden>Distribuir cartas</button>
+          <div id="game-actions" hidden>
+            <button id="social-hit" type="button" class="button button-primary">Pedir</button>
+            <button id="social-stand" type="button" class="button button-warm">Parar</button>
+            <button id="social-double" type="button" class="button button-outline">Dobrar</button>
+            <button id="social-split" type="button" class="button button-outline">Dividir</button>
+          </div>
+          <button id="social-refill" type="button" class="button button-soft" hidden>Receber créditos casuais</button>
         </div>
       </section>
       <p id="rooms-error" class="error-message" role="alert" hidden></p>
