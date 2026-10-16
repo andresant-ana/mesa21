@@ -170,3 +170,52 @@ test("não deixa sair nem reiniciar rodada que ainda está recebendo apostas", a
   assert.equal((await request(session("a"), "/rooms/" + room.code + "/start", {})).status, 409);
   assert.equal((await request(session("a"), "/rooms/" + room.code + "/deal", {})).status, 409);
 });
+
+
+test("alarme cancela rodada sem apostas para não prender a sala", async () => {
+  const { request, storage, lobby } = setup();
+  const host = session("a");
+  const created = await request(host, "/rooms", create());
+  const { room } = await created.json() as { room: { code: string } };
+  await request(host, "/rooms/" + room.code + "/start", {});
+  const state = storage.get("rooms") as { rooms: Array<{ round: { deadlineAt: number } | null }> };
+  assert.ok(state.rooms[0]!.round);
+  state.rooms[0]!.round!.deadlineAt = Date.now() - 1;
+  await lobby.alarm();
+  assert.equal(state.rooms[0]!.round, null);
+  assert.equal((await request(host, "/rooms/" + room.code + "/start", {})).status, 200);
+});
+
+test("alarme faz o jogador ausente parar e passa ao próximo sem duplicar créditos", async () => {
+  const { request, storage, lobby } = setup();
+  const host = session("a"), guest = session("b");
+  const { room } = await (await request(host, "/rooms", create())).json() as { room: { code: string } };
+  await request(guest, "/rooms/" + room.code + "/join", { displayName: "luigi" });
+  await request(host, "/rooms/" + room.code + "/start", {});
+  const state = storage.get("rooms") as { rooms: Array<{ round: {
+    shoe: Array<{ rank: string; suit: string }>;
+    deadlineAt: number | null;
+    phase: string;
+    turn: number;
+  } }> };
+  state.rooms[0]!.round.shoe = [
+    { rank: "10", suit: "clubs" }, { rank: "9", suit: "clubs" },
+    { rank: "6", suit: "clubs" }, { rank: "8", suit: "clubs" },
+    { rank: "7", suit: "clubs" }, { rank: "10", suit: "clubs" },
+    { rank: "2", suit: "clubs" }, ...Array.from({ length: 50 }, () => ({ rank: "2", suit: "clubs" }))
+  ];
+  await request(host, "/rooms/" + room.code + "/bet", { bet: 100 });
+  await request(guest, "/rooms/" + room.code + "/bet", { bet: 100 });
+  assert.equal(state.rooms[0]!.round.phase, "playing");
+  state.rooms[0]!.round.deadlineAt = Date.now() - 1;
+  await lobby.alarm();
+  assert.equal(state.rooms[0]!.round.turn, 1);
+  assert.equal(state.rooms[0]!.round.phase, "playing");
+  state.rooms[0]!.round.deadlineAt = Date.now() - 1;
+  await lobby.alarm();
+  assert.equal(state.rooms[0]!.round.phase, "finished");
+  assert.equal(state.rooms[0]!.round.deadlineAt, null);
+  const snapshot = await request(host, "/rooms/" + room.code);
+  const { room: view } = await snapshot.json() as { room: { myCredits: number } };
+  assert.equal(view.myCredits, 2_000); // 18 versus dealer final 18, push.
+});
