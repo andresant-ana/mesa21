@@ -43,6 +43,7 @@ test("cria sessão de visitante com cookie HttpOnly e créditos casuais", async 
   const cookie = response.headers.get("set-cookie") ?? "";
   assert.match(cookie, /HttpOnly/);
   assert.match(cookie, /SameSite=Strict/);
+  assert.match(cookie, /Secure/);
   assert.ok(cookie.includes("Path=/"));
 });
 
