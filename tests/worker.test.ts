@@ -152,3 +152,49 @@ test("reembaralha seis baralhos quando atinge 75% de penetração", async () => 
   const saved = store.get("session") as { game: ReturnType<typeof createGame> };
   assert.equal(saved.game.shoe.length, 6 * 52 - 4);
 });
+
+
+test("permite recarga gratuita apenas com saldo casual insuficiente e sem rodada ativa", async () => {
+  const store = new Map<string, unknown>();
+  const state = { storage: {
+    async get<T>(key: string) { return store.get(key) as T | undefined; },
+    async put<T>(key: string, value: T) { store.set(key, value); }
+  }};
+  store.set("session", { casualCredits: 0, game: null });
+  const session = new GameSession(state, {} as never);
+  const refill = () => session.fetch(new Request("https://internal/game/refill", {
+    method: "POST", body: "{}"
+  }));
+  const first = await refill();
+  assert.equal(first.status, 200);
+  const result = await first.json() as { casualCredits: number; rankedPoints: null };
+  assert.equal(result.casualCredits, 2_000);
+  assert.equal(result.rankedPoints, null);
+  assert.equal((await refill()).status, 409);
+
+  const active = createGame(2_000, 10, [
+    { rank: "10", suit: "clubs" }, { rank: "6", suit: "clubs" },
+    { rank: "9", suit: "hearts" }, { rank: "10", suit: "spades" },
+    { rank: "5", suit: "diamonds" }
+  ]);
+  store.set("session", { casualCredits: 0, game: active });
+  assert.equal((await refill()).status, 409);
+  assert.equal((store.get("session") as { casualCredits: number }).casualCredits, 0);
+});
+
+test("rejeita JSON null sem gerar erro interno ou modificar saldo", async () => {
+  const env = environment();
+  const first = await worker.fetch(new Request("https://mesa21.test/api/session"), env as never);
+  const cookie = first.headers.get("set-cookie")!.split(";")[0]!;
+  const response = await worker.fetch(new Request("https://mesa21.test/api/game/start", {
+    method: "POST",
+    headers: { "content-type": "application/json", "origin": "https://mesa21.test", cookie },
+    body: "null"
+  }), env as never);
+  assert.equal(response.status, 400);
+  assert.deepEqual(await response.json(), { error: "INVALID_REQUEST" });
+  const after = await worker.fetch(new Request("https://mesa21.test/api/session", {
+    headers: { cookie }
+  }), env as never);
+  assert.equal((await after.json() as { casualCredits: number }).casualCredits, 2_000);
+});
