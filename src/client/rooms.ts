@@ -5,9 +5,15 @@ type Entry = {
   code: string; name: string; visibility: "public" | "private"; mode: "casual";
   players: number; capacity: number; spectators: number; hostName: string; createdAt: number;
 };
+type SocialCard = { rank: string; suit: "clubs" | "diamonds" | "hearts" | "spades" };
+type SocialHand = { cards: SocialCard[]; total: number; wager: number; done: boolean; result: string | null };
+type SocialRound = { phase: "betting" | "playing" | "finished"; dealerCards: Array<SocialCard | null>; dealerTotal: number | null; turnSeatId: string | null; seats: Array<{ id: string; wager: number; activeHand: number; hands: SocialHand[] }> };
 type Detail = Entry & {
-  role: "visitor" | "player" | "spectator"; isHost: boolean; gameAvailable: false;
+  role: "visitor" | "player" | "spectator"; isHost: boolean; gameAvailable: boolean;
   members: Array<{ id: string; name: string; isHost: boolean }>;
+  mySeatId: string | null;
+  myCredits: number | null;
+  round: SocialRound | null;
   spectatorsList: Array<{ id: string; name: string }>;
 };
 
@@ -176,6 +182,7 @@ function renderRoom(room: Detail): void {
   inviteArea.hidden = !joined;
   joinArea.hidden = joined;
   inviteLink.value = location.origin + "/salas.html?sala=" + room.code;
+  renderGameplay(room);
   joinName.value ||= nick.value;
   if (joined && (!socket || socket.readyState === WebSocket.CLOSED)) connect(room.code);
 }
