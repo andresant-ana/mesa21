@@ -99,6 +99,44 @@ export class RoomLobby {
     return work;
   }
 
+  async alarm(): Promise<void> {
+    const work = this.queue.then(() => this.handleAlarm());
+    this.queue = work.then(() => undefined, () => undefined);
+    await work;
+  }
+
+  private async handleAlarm(): Promise<void> {
+    const stored = (await this.state.storage.get<Stored>("rooms")) ?? { rooms: [] };
+    const now = Date.now();
+    for (const room of stored.rooms) {
+      const round = room.round;
+      if (!round || round.deadlineAt === null || round.deadlineAt > now) continue;
+      if (round.phase === "betting") {
+        if (round.seats.some((seat) => seat.wager > 0)) {
+          dealTable(round, room.members);
+        } else {
+          room.round = null;
+        }
+      } else if (round.phase === "playing") {
+        const currentSeat = round.seats[round.turn];
+        if (currentSeat) playTableAction(round, room.members, currentSeat.id, "stand");
+      }
+      room.touchedAt = now;
+      this.broadcast(room);
+    }
+    await this.state.storage.put("rooms", stored);
+    await this.scheduleAlarm(stored);
+  }
+
+  private async scheduleAlarm(stored: Stored): Promise<void> {
+    const deadlines = stored.rooms.flatMap((room) => {
+      const deadline = room.round?.deadlineAt;
+      return typeof deadline === "number" ? [deadline] : [];
+    });
+    if (deadlines.length) await this.state.storage.setAlarm?.(Math.min(...deadlines));
+    else await this.state.storage.deleteAlarm?.();
+  }
+
   private async handle(request: Request): Promise<Response> {
     const url = new URL(request.url);
     const session = request.headers.get("x-mesa21-session") ?? "";
@@ -190,6 +228,7 @@ export class RoomLobby {
       room.round = openBetting(room.members, shoe);
       room.touchedAt = now;
       await this.state.storage.put("rooms", stored);
+      await this.scheduleAlarm(stored);
       this.broadcast(room);
       return result({ room: roomDetails(room, session) });
     }
@@ -203,6 +242,7 @@ export class RoomLobby {
       if (room.round.seats.every((seat) => seat.wager > 0)) dealTable(room.round, room.members);
       room.touchedAt = now;
       await this.state.storage.put("rooms", stored);
+      await this.scheduleAlarm(stored);
       this.broadcast(room);
       return result({ room: roomDetails(room, session) });
     }
@@ -213,6 +253,7 @@ export class RoomLobby {
       dealTable(room.round, room.members);
       room.touchedAt = now;
       await this.state.storage.put("rooms", stored);
+      await this.scheduleAlarm(stored);
       this.broadcast(room);
       return result({ room: roomDetails(room, session) });
     }
@@ -227,6 +268,7 @@ export class RoomLobby {
       playTableAction(room.round, room.members, member.id, body.action as Action);
       room.touchedAt = now;
       await this.state.storage.put("rooms", stored);
+      await this.scheduleAlarm(stored);
       this.broadcast(room);
       return result({ room: roomDetails(room, session) });
     }
