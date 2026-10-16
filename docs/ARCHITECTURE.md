@@ -20,7 +20,7 @@ Cloudflare é uma decisão reversível: os assets estáticos têm cobrança/limi
 
 ## Limites de confiança
 
-- O cliente não envia cartas, saldo, total, prêmio ou resultado. Envia apenas aposta ao iniciar, ação hit/stand/double durante a rodada e uma solicitação de recarga casual validada exclusivamente no servidor.
+- O cliente não envia cartas, saldo, total, prêmio ou resultado. Envia apenas aposta ao iniciar, ação hit/stand/double/split durante a rodada e uma solicitação de recarga casual validada exclusivamente no servidor.
 - O Worker valida método, origem, tipo de conteúdo e tamanho do corpo. A sessão usa identificador aleatório de 256 bits num cookie HttpOnly, SameSite=Strict e Path=/; Secure é aplicado em produção.
 - O identificador de visitante seleciona o Durable Object. Não é autenticação de conta; a versão inicial não promete proteção contra limpeza de cookies, automação ou criação de várias sessões.
 - O Durable Object valida aposta e fase, embaralha seis baralhos com crypto.getRandomValues, aplica as ações, resolve a dealer e persiste o saldo casual antes de responder.
@@ -32,9 +32,9 @@ Cloudflare é uma decisão reversível: os assets estáticos têm cobrança/limi
 
 ## Domínio implementado
 
-O motor puro em src/domain/blackjack.ts implementa sapato de seis baralhos, Fisher–Yates com fonte criptográfica, ases suaves, natural 3:2, empate, hit, stand, double, bust e dealer que para em 17 (incluindo soft 17). O sapato e a carta fechada permanecem no servidor.
+O motor puro em src/domain/blackjack.ts implementa sapato de seis baralhos, Fisher–Yates com fonte criptográfica, ases suaves, natural 3:2, empate, hit, stand, double, bust, split com até duas mãos e dealer que para em 17 (incluindo soft 17). O sapato e a carta fechada permanecem no servidor.
 
-Nesta fatia: apostas casuais de 10 a 100 créditos em múltiplos de 10; 2.000 créditos fictícios iniciais; natural 3:2. O sapato é reutilizado entre rodadas e reembaralhado ao atingir 75% de penetração (até 78 cartas restantes). Dobrar e estourar encerra como derrota sem rodada da dealer. Splits, seguro, side bets e regras configuráveis ainda não fazem parte da tela.
+Nesta fatia: apostas casuais de 10 a 100 créditos em múltiplos de 10; 2.000 créditos fictícios iniciais; natural 3:2. O sapato é reutilizado entre rodadas e reembaralhado ao atingir 75% de penetração (até 78 cartas restantes). Dobrar e estourar encerra como derrota sem rodada da dealer. O split permite no máximo duas mãos quando as cartas iniciais têm o mesmo valor de blackjack (10/J/Q/K equivalentes). Split de ases compra exatamente uma carta por mão e para; 21 após split paga 1:1, nunca 3:2. Dobrar depois de dividir é permitido quando a mão ativa tem duas cartas e saldo suficiente (DAS). Re-split, seguro, side bets e regras configuráveis não são permitidos nesta versão.
 
 ## Estrutura
 
