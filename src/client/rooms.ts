@@ -180,7 +180,7 @@ function renderRoom(room: Detail): void {
   if (joined && (!socket || socket.readyState === WebSocket.CLOSED)) connect(room.code);
 }
 
-async function openRoom(code: string): Promise<void> {
+async function openRoom(code: string, updateHistory = true): Promise<void> {
   const sanitized = code.toUpperCase().trim();
   if (!CODE_PATTERN.test(sanitized)) {
     showError("Use um código válido de 12 caracteres.");
@@ -190,7 +190,7 @@ async function openRoom(code: string): Promise<void> {
   closeSocket();
   try {
     const { room } = await api<{ room: Detail }>("/rooms/" + sanitized);
-    history.pushState({}, "", "/salas.html?sala=" + sanitized);
+    if (updateHistory) history.pushState({}, "", "/salas.html?sala=" + sanitized);
     renderRoom(room);
   } catch (error) {
     showError(String(error instanceof Error ? error.message : error));
@@ -255,7 +255,7 @@ window.addEventListener("popstate", () => { closeSocket(); void initialize(); })
 async function initialize(): Promise<void> {
   clearError();
   const code = new URLSearchParams(location.search).get("sala");
-  if (code) await openRoom(code);
+  if (code) await openRoom(code, false);
   else { opened = null; detailPanel.hidden = true; directory.hidden = false; await withBusy(renderDirectory); }
 }
 void initialize();
