@@ -324,6 +324,7 @@ leaveButton.addEventListener("click", () => void withBusy(async () => {
   opened = null;
   history.pushState({}, "", "/salas.html");
   detailPanel.hidden = true;
+  element<HTMLElement>("game-area").hidden = true;
   directory.hidden = false;
   await renderDirectory();
 }));
@@ -352,6 +353,6 @@ async function initialize(): Promise<void> {
   clearError();
   const code = new URLSearchParams(location.search).get("sala");
   if (code) await openRoom(code, false);
-  else { opened = null; detailPanel.hidden = true; directory.hidden = false; await withBusy(renderDirectory); }
+  else { opened = null; detailPanel.hidden = true; element<HTMLElement>("game-area").hidden = true; directory.hidden = false; await withBusy(renderDirectory); }
 }
 void initialize();
