@@ -24,6 +24,7 @@ const playerTotalElement = required<HTMLElement>("player-total");
 const messageElement = required<HTMLElement>("round-message");
 const errorElement = required<HTMLElement>("error-message");
 const betElement = required<HTMLSelectElement>("bet");
+const betControls = required<HTMLElement>("bet-controls");
 const hitButton = required<HTMLButtonElement>("hit");
 const standButton = required<HTMLButtonElement>("stand");
 const doubleButton = required<HTMLButtonElement>("double");
@@ -72,6 +73,9 @@ function renderGame(game: PublicGame | null): void {
   const canRefill = currentCredits < 10 && (!game || game.phase === "finished");
   refillButton.hidden = !canRefill;
   refillButton.disabled = busy || !canRefill;
+  const bettingPhase = !game || game.phase === "finished";
+  betControls.hidden = !bettingPhase;
+  newRoundButton.hidden = !bettingPhase || currentCredits < 10;
   if (!game) {
     dealerCardsElement.replaceChildren(hint("Dê início à rodada quando estiver pronto."));
     playerCardsElement.replaceChildren(emptyCard(), emptyCard());
@@ -101,6 +105,9 @@ function renderGame(game: PublicGame | null): void {
 }
 
 function setActions(enabled: boolean, canDouble: boolean): void {
+  hitButton.hidden = !enabled;
+  standButton.hidden = !enabled;
+  doubleButton.hidden = !enabled || !canDouble;
   hitButton.disabled = busy || !enabled;
   standButton.disabled = busy || !enabled;
   doubleButton.disabled = busy || !canDouble;
