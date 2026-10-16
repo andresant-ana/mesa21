@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f8f5ef" />
+    <meta name="description" content="Blackjack solo, leve e gratuito. MESA/21 usa apenas créditos fictícios." />
+    <title>MESA/21 — Blackjack solo</title>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="MESA/21 — início">
+          <span>MESA</span><span class="brand-mark">/21</span>
+        </a>
+        <div class="mode-pill"><span class="status-dot" aria-hidden="true"></span> Modo solo</div>
+        <div class="credit-box" aria-live="polite">
+          <span class="credit-label">Créditos casuais</span>
+          <strong id="credit-balance">—</strong>
+        </div>
+      </header>
+
+      <main>
+        <section class="intro" aria-labelledby="page-title">
+          <div>
+            <p class="eyebrow">UMA PARTIDA TRANQUILA</p>
+            <h1 id="page-title">Blackjack, no seu ritmo.</h1>
+            <p class="intro-copy">Pratique suas decisões em uma mesa solo com créditos que não valem dinheiro.</p>
+          </div>
+          <p class="rules-note"><span aria-hidden="true">✦</span> Dealer para no 17</p>
+        </section>
+
+        <section class="table" aria-label="Mesa de blackjack">
+          <div class="dealer-row">
+            <div class="clarice-avatar" aria-hidden="true">
+              <svg viewBox="0 0 64 64">
+                <circle cx="32" cy="32" r="31" fill="#f9dfb1"/>
+                <path d="M12 28c0-14 8-22 20-22s20 8 20 22v13c0 10-9 18-20 18S12 51 12 41V28Z" fill="#49372f"/>
+                <path d="M17 30c0-10 6-16 15-16s15 6 15 16v10c0 9-6 14-15 14s-15-5-15-14V30Z" fill="#f3c7a4"/>
+                <path d="M17 30c1-9 6-14 15-14s14 5 15 14c-5-1-9-4-12-8-4 5-10 8-18 8Z" fill="#49372f"/>
+                <circle cx="26" cy="34" r="1.7" fill="#342823"/><circle cx="38" cy="34" r="1.7" fill="#342823"/>
+                <path d="M28 43c2 2 6 2 8 0" fill="none" stroke="#a85d57" stroke-width="1.8" stroke-linecap="round"/>
+                <path d="M20 55c2-7 8-10 12-10s10 3 12 10" fill="#1d3f36"/>
+                <path d="M24 25c2-2 5-2 7-1M34 24c2-1 5-1 7 1" fill="none" stroke="#49372f" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="dealer-copy">
+              <span class="eyebrow light">SUA DEALER</span>
+              <strong>Clarice</strong>
+            </div>
+            <div class="dealer-total" id="dealer-total" aria-live="polite"></div>
+          </div>
+          <div class="dealer-cards card-row" id="dealer-cards" aria-label="Cartas da dealer">
+            <p class="table-hint">Dê início à rodada quando estiver pronto.</p>
+          </div>
+
+          <div class="table-divider"><span>✦</span></div>
+
+          <div class="player-label">
+            <span class="eyebrow light">SUA MÃO</span>
+            <span id="player-total" class="hand-total" aria-live="polite"></span>
+          </div>
+          <div class="player-cards card-row" id="player-cards" aria-label="Suas cartas">
+            <div class="empty-card" aria-hidden="true">＋</div>
+            <div class="empty-card" aria-hidden="true">＋</div>
+          </div>
+          <div class="round-message" id="round-message" role="status" aria-live="polite">Uma mesa simples, só para você.</div>
+        </section>
+
+        <section class="controls" aria-label="Ações da partida">
+          <div class="bet-control" id="bet-controls">
+            <label for="bet">Aposta casual</label>
+            <div class="bet-select-wrap">
+              <select id="bet" name="bet" aria-label="Valor da aposta em créditos casuais">
+                <option value="10">10 créditos</option>
+                <option value="20">20 créditos</option>
+                <option value="50" selected>50 créditos</option>
+                <option value="100">100 créditos</option>
+              </select>
+              <span aria-hidden="true">⌄</span>
+            </div>
+          </div>
+          <div class="action-buttons">
+            <button class="button button-soft" id="hit" type="button" disabled>Pedir carta</button>
+            <button class="button button-warm" id="stand" type="button" disabled>Parar</button>
+            <button class="button button-outline" id="double" type="button" disabled>Dobrar</button>
+            <button class="button button-outline" id="split" type="button" disabled hidden>Dividir mãos</button>
+            <button class="button button-primary" id="new-round" type="button">Nova partida <span aria-hidden="true">→</span></button>
+            <button class="button button-soft" id="refill" type="button" hidden>Receber créditos grátis</button>
+          </div>
+        </section>
+
+        <footer class="footnote">
+          <span>Créditos casuais são fictícios, não podem ser sacados e não contam para ranking.</span>
+          <span>As cartas e os resultados da partida são validados pelo servidor.</span>
+        </footer>
+        <p class="error-message" id="error-message" role="alert" hidden></p>
+      </main>
+    </div>
+    <script type="module" src="/src/client/main.ts"></script>
+  </body>
+</html>

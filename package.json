@@ -1,0 +1,22 @@
+{
+  "name": "mesa21",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "MESA/21 — blackjack solo com fichas fictícias.",
+  "engines": { "node": ">=22.12.0" },
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "dev:api": "wrangler dev --port 8787",
+    "build": "vite build",
+    "check": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test tests/*.test.ts",
+    "preview": "vite preview --host 0.0.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.30",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5",
+    "wrangler": "^4.12.0"
+  }
+}
