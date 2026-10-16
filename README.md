@@ -9,11 +9,12 @@ Blackjack solo, gratuito e leve, com créditos exclusivamente fictícios e ident
 - Motor de seis baralhos, cartas embaralhadas com fonte criptográfica, natural 3:2, hit, stand, double, split, empate e dealer para em soft 17.
 - Créditos casuais separados; API não aceita cartas, saldo ou resultado informados pelo navegador.
 - Clarice em SVG inline e cartas desenhadas com CSS; sem imagens raster ou CDN de ícones.
+- Lobby social inicial em `/salas.html`: salas públicas/privadas, convites por URL, ocupação de cadeiras e WebSocket de participantes. **Partidas multiplayer ainda não implementadas.**
 - Testes determinísticos e CI com checagem estrita de tipos.
 
 ### Ainda não implementado
 
-Contas, autenticação, recuperação entre dispositivos, multiplayer, salas reais, chat, ranking global, créditos classificatórios, protocolo de fairness verificável, deploy público e proteção operacional contra abuso automatizado. O saldo de visitante depende do cookie; limpar cookies perde a sessão, e criar várias sessões não é impedido.
+Contas, autenticação, recuperação entre dispositivos, partidas multiplayer, chat, ranking global, créditos classificatórios, protocolo de fairness verificável, deploy público e proteção operacional contra abuso automatizado. O saldo de visitante depende do cookie; limpar cookies perde a sessão, e criar várias sessões não é impedido.
 
 ## Rodar localmente
 
@@ -35,5 +36,6 @@ Wrangler mantém os Durable Objects no ambiente local.
 - docs/STITCH_AUDIT.md: inventário e achados do export Stitch.
 - docs/ARCHITECTURE.md: arquitetura, limites de confiança e execução local.
 - docs/IMPLEMENTATION_PLAN.md: marcos e critérios.
+- docs/SOCIAL_ROOMS.md: contrato das salas de espera reais e limitações de lançamento.
 
 O repositório apresenta exclusivamente MESA/21. Leia a arquitetura, a auditoria Stitch e o plano para detalhes.
