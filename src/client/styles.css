@@ -111,3 +111,9 @@ h1 { margin: 8px 0 7px; color: #202822; font: 800 clamp(26px, 4vw, 39px)/1.12 "P
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
+
+/* Light global navigation shared with the social lobby. */
+.room-nav { display: flex; align-items: center; gap: 8px; }
+.room-nav-link { display: inline-flex; align-items: center; padding: 10px 14px; border-radius: 999px; color: #31594d; text-decoration: none; font-weight: 700; font-size: 13px; }
+.room-nav-link:hover, .room-nav-link:focus-visible { background: #e9f1eb; }
+@media(max-width:400px) { .room-nav .mode-pill { display: none; } .room-nav-link { padding-inline: 8px; } }
