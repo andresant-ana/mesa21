@@ -146,8 +146,11 @@ try {
   if (await page.locator("#stand").isVisible()) {
     const wasHidden = await page.locator("#dealer-cards .card-back").count() > 0;
     await page.locator("#stand").click();
-    if (wasHidden) assert.equal(await page.locator("#dealer-cards .card-flip").count(), 1,
-      "dealer hole card flips only when the server reveals it");
+    if (wasHidden) {
+      await page.waitForFunction(() => !document.querySelector("#dealer-cards .card-back"), undefined, { timeout: 15_000 });
+      assert.equal(await page.locator("#dealer-cards .card-flip").count(), 1,
+        "dealer hole card flips only when the server reveals it");
+    }
   }
   await page.locator("#new-round").waitFor({ state: "visible", timeout: 15_000 });
   await page.locator("#new-round").click();
