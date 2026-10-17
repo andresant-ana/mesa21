@@ -132,7 +132,7 @@ h1 { margin: 8px 0 7px; color: #202822; font: 800 clamp(26px, 4vw, 39px)/1.12 "P
 /* Solo game controls belong to the felt, so the table contains the full play loop. */
 .solo-table { padding-bottom: 23px; }
 .solo-table-status { position: relative; z-index: 2; margin: 0 4px 14px; padding: 0 0 13px; border-bottom: 1px solid rgba(237, 220, 170, .24); }
-.solo-table-mode { color: #f6f0da; font-weight: 700; }
+.solo-table-mode { margin: 0; color: #f6f0da; font: 700 13px "Plus Jakarta Sans", sans-serif; letter-spacing: 0; }
 .solo-table-metrics { display: flex; align-items: center; gap: clamp(12px, 2.4vw, 28px); }
 .solo-table-credit { display: grid; gap: 2px; text-align: right; }
 .solo-table-credit .credit-label { color: #d2e3d7; font-size: 10px; letter-spacing: .04em; }
