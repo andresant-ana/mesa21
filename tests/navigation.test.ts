@@ -46,6 +46,8 @@ test("solo and ranked games use graphical chip selection without wager dropdowns
   assert.match(ranked, /data-bet="50"/);
   assert.doesNotMatch(ranked, /<select[^>]*id="bet"/);
   assert.match(ranked, /Mesa classificatória de blackjack/);
+  assert.match(ranked, /id="credit-balance"/);
+  assert.match(ranked, /class="table-stats">Aposta/);
 });
 
 test("lobby, solo, and ranked headers omit the credits banner", async () => {
