@@ -1,6 +1,6 @@
 import "./styles.css";
 import "./rooms.css";
-import { verifyRevealedShoe } from "../domain/shoeAudit.ts";
+import { verifyRevealedShoe, verifyShoeDrawTrace } from "../domain/shoeAudit.ts";
 import type { RevealedShoe } from "../domain/shoeAudit.ts";
 
 type Entry = {
@@ -362,10 +362,13 @@ element<HTMLButtonElement>("verify-shoe").addEventListener("click", () => void w
     status.textContent = "Ainda não há baralhos aposentados. O baralho atual permanece secreto.";
     return;
   }
-  const checks = await Promise.all(data.revealed.map(verifyRevealedShoe));
-  status.textContent = checks.every(Boolean)
-    ? checks.length + " baralho(s) aposentado(s) com compromisso válido."
-    : "Atenção: pelo menos uma prova não corresponde ao compromisso!";
+  const commitments = await Promise.all(data.revealed.map(verifyRevealedShoe));
+  const distributions = data.revealed.map(verifyShoeDrawTrace);
+  status.textContent = !commitments.every(Boolean)
+    ? "Atenção: pelo menos um compromisso de baralho está inválido!"
+    : distributions.every(Boolean)
+      ? commitments.length + " baralho(s) conferido(s): compromisso e ordem de distribuição válidos."
+      : "Compromisso válido, mas histórico de distribuição ausente ou inconsistente.";
 }));
 element<HTMLButtonElement>("refresh-rooms").addEventListener("click", () => void withBusy(renderDirectory));
 window.addEventListener("popstate", () => { closeSocket(); void initialize(); });
