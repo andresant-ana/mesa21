@@ -160,7 +160,6 @@ try {
     assert.equal(await page.locator("#game-wager").inputValue(), "20", "social chip selection controls the authoritative wager request");
     await page.locator("#game-bet").click();
     await friendPage.locator("#game-bet").click();
-    await page.locator("#game-deal").click();
     await page.locator(".social-player").nth(0).waitFor({ state: "visible" });
     await page.waitForFunction(() => document.querySelectorAll("#social-player-hands .social-player").length === 5,
       undefined, { timeout: 15_000 });
