@@ -50,22 +50,23 @@
             <div class="empty-card" aria-hidden="true">＋</div>
           </div>
           <div class="round-message" id="round-message" role="status" aria-live="polite">Faça suas jogadas e acompanhe seus resultados.</div>
+          <section class="controls" aria-label="Ações da partida">
+            <div class="bet-control" id="bet-controls">
+              <label>Aposta classificatória</label>
+              <div class="chip-tray" role="group" aria-label="Selecione o valor da ficha"><button class="chip-button chip-coral" type="button" data-bet="10" aria-label="Selecionar ficha de 10 créditos" aria-pressed="false">10</button><button class="chip-button chip-cream" type="button" data-bet="20" aria-label="Selecionar ficha de 20 créditos" aria-pressed="false">20</button><button class="chip-button chip-yellow" type="button" data-bet="50" aria-label="Selecionar ficha de 50 créditos" aria-pressed="true">50</button><button class="chip-button chip-green" type="button" data-bet="100" aria-label="Selecionar ficha de 100 créditos" aria-pressed="false">100</button></div><input id="bet" name="bet" type="hidden" value="50">
+            </div>
+            <div class="action-buttons">
+              <button class="button button-soft" id="hit" type="button" disabled>Pedir carta</button>
+              <button class="button button-warm" id="stand" type="button" disabled>Parar</button>
+              <button class="button button-outline" id="double" type="button" disabled>Dobrar</button>
+              <button class="button button-outline" id="split" type="button" disabled hidden>Dividir mãos</button>
+              <button class="button button-primary" id="new-round" type="button">JOGAR</button>
+              <button class="button button-soft" id="refill" type="button" hidden>Receber créditos grátis</button>
+            </div>
+          </section>
         </section>
 
-        <section class="controls" aria-label="Ações da partida">
-          <div class="bet-control" id="bet-controls">
-            <label>Aposta classificatória</label>
-            <div class="chip-tray" role="group" aria-label="Selecione o valor da ficha"><button class="chip-button chip-coral" type="button" data-bet="10" aria-label="Selecionar ficha de 10 créditos" aria-pressed="false">10</button><button class="chip-button chip-cream" type="button" data-bet="20" aria-label="Selecionar ficha de 20 créditos" aria-pressed="false">20</button><button class="chip-button chip-yellow" type="button" data-bet="50" aria-label="Selecionar ficha de 50 créditos" aria-pressed="true">50</button><button class="chip-button chip-green" type="button" data-bet="100" aria-label="Selecionar ficha de 100 créditos" aria-pressed="false">100</button></div><input id="bet" name="bet" type="hidden" value="50">
-          </div>
-          <div class="action-buttons">
-            <button class="button button-soft" id="hit" type="button" disabled>Pedir carta</button>
-            <button class="button button-warm" id="stand" type="button" disabled>Parar</button>
-            <button class="button button-outline" id="double" type="button" disabled>Dobrar</button>
-            <button class="button button-outline" id="split" type="button" disabled hidden>Dividir mãos</button>
-            <button class="button button-primary" id="new-round" type="button">JOGAR</button>
-            <button class="button button-soft" id="refill" type="button" hidden>Receber créditos grátis</button>
-          </div>
-        </section>
+
 
         <footer class="footnote">
           <span>Créditos são fictícios, não podem ser sacados. Somente o resultado das partidas entra no ranking.</span>
