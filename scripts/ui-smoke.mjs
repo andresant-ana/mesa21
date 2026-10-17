@@ -81,6 +81,13 @@ try {
   const username = "qa_" + randomBytes(5).toString("hex");
   await page.goto(origin + "/conta.html", { waitUntil: "domcontentloaded" });
   await page.locator('[data-tab="register"]').click();
+  await page.locator("#register-user").fill("admin");
+  await page.locator("#register-pass").fill("FakePass8");
+  await page.locator("#register-confirm").fill("FakePass8");
+  await page.locator('#register-form button[type="submit"]').click();
+  await page.locator("#account-error").waitFor({ state: "visible", timeout: 10_000 });
+  assert.match(await page.locator("#account-error").innerText(), /Confira o nome de usuário/,
+    "signup backend errors are visible and specific");
   await page.locator("#register-user").fill(username);
   await page.locator("#register-pass").fill("7chars!");
   assert.equal(await page.locator("#register-pass").evaluate((input) => input.validity.tooShort), true,
@@ -98,6 +105,12 @@ try {
   await page.goto(origin + "/conta.html", { waitUntil: "domcontentloaded" });
   await page.locator("#account-panel").waitFor({ state: "visible", timeout: 15_000 });
   await page.reload({ waitUntil: "domcontentloaded" });
+  await page.locator("#account-panel").waitFor({ state: "visible", timeout: 15_000 });
+  await page.locator("#sign-out").click();
+  await page.locator("#auth-panel").waitFor({ state: "visible", timeout: 15_000 });
+  await page.locator("#login-user").fill(username);
+  await page.locator("#login-pass").fill("Q4t!z8Lm");
+  await page.locator('#login-form button[type="submit"]').click();
   await page.locator("#account-panel").waitFor({ state: "visible", timeout: 15_000 });
 
   await page.goto(origin + "/carteira.html", { waitUntil: "domcontentloaded" });
