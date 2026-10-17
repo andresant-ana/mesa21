@@ -1,0 +1,23 @@
+.account-main { max-width: 680px; margin: 0 auto; padding: 48px 18px 70px; }
+.account-intro { text-align: center; margin-bottom: 29px; }
+.account-intro h1 { color: #1d3f36; font: 800 clamp(28px, 4vw, 42px) "Plus Jakarta Sans", sans-serif; letter-spacing: -.05em; margin: 12px 0; }
+.account-intro p:not(.eyebrow) { margin: 0; color: #65766c; font-size: 15px; line-height: 1.6; }
+.account-card { max-width: 465px; margin: 0 auto 14px; background: #fffdfa; border: 1px solid #e8e6dd; border-radius: 26px; padding: clamp(20px, 4vw, 32px); box-shadow: 0 16px 48px rgba(29, 63, 54, .06); }
+.account-card h2 { font: 800 24px "Plus Jakarta Sans", sans-serif; letter-spacing: -.035em; color: #1d3f36; margin: 0 0 12px; }
+.account-card p { color: #67766b; line-height: 1.55; font-size: 14px; margin: 0 0 18px; }
+.account-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; border-radius: 17px; padding: 5px; background: #f1f3ed; margin-bottom: 24px; }
+.account-tab { min-height: 43px; color: #496156; border: 0; border-radius: 13px; background: transparent; font: 700 13px "Plus Jakarta Sans", sans-serif; cursor: pointer; }
+.account-tab.is-active { background: #fffdfa; box-shadow: 0 2px 8px rgba(38, 59, 48, .08); color: #1d3f36; }
+.account-tab:focus-visible { outline: 3px solid #78c9ad; outline-offset: 2px; }
+.account-form { display: grid; gap: 12px; }
+.account-form label { font-weight: 700; font-size: 13px; color: #375447; }
+.account-form input { width: 100%; min-height: 46px; padding: 10px 14px; border: 1px solid #dbe1d9; border-radius: 14px; background: #fdfcf7; font: 500 15px "Plus Jakarta Sans", sans-serif; color: #213e32; }
+.account-form input:focus-visible { outline: 3px solid #b6e7cf; outline-offset: 1px; }
+.account-form .button { margin-top: 12px; width: 100%; justify-content: center; }
+.account-avatar { display: grid; place-items: center; width: 66px; height: 66px; background: #daede0; border-radius: 50%; color: #2b5c4a; font-size: 28px; margin-bottom: 14px; }
+.recovery-secret { display: grid; gap: 10px; margin-bottom: 16px; }
+.recovery-secret code { white-space: normal; overflow-wrap: anywhere; background: #eff4ec; padding: 15px; border-radius: 14px; font-size: 15px; color: #264839; }
+.recovery-card .button { margin-bottom: 6px; }
+.account-alert { max-width: 465px; margin: 12px auto; }
+.account-disclaimer { color: #78887f; font-size: 12px; text-align: center; margin-top: 22px; line-height: 1.5; }
+@media (max-width: 480px) { .account-main { padding-top: 22px; } .account-card { border-radius: 20px; } .account-tab { font-size: 11px; } }

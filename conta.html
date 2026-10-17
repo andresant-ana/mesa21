@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#faf8f5">
+  <meta name="description" content="Entre ou crie sua conta gratuita do MESA/21 usando um nome de usuário e senha.">
+  <title>MESA/21 — Minha conta</title>
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <a class="brand" href="/"><span>MESA</span><span class="brand-mark">/21</span></a>
+    <nav class="room-nav" aria-label="Navegação">
+      <a class="room-nav-link" href="/salas.html">Salas</a>
+      <a class="room-nav-link" href="/">Jogar solo</a>
+    </nav>
+  </header>
+  <main class="account-main">
+    <section class="account-intro">
+      <p class="eyebrow">SUA CONTA, SUAS HISTÓRIAS</p>
+      <h1>Bora voltar pra mesa?</h1>
+      <p>Seu cantinho no MESA/21, sem e-mail, sem cobrança e sem complicação.</p>
+    </section>
+    <section class="account-card" id="auth-panel" aria-label="Acesso à conta">
+      <div class="account-tabs" role="group" aria-label="Escolha uma opção">
+        <button type="button" class="account-tab is-active" data-tab="login">Entrar</button>
+        <button type="button" class="account-tab" data-tab="register">Criar conta</button>
+        <button type="button" class="account-tab" data-tab="recover">Recuperar</button>
+      </div>
+      <form id="login-form" class="account-form">
+        <h2>Que bom te ver!</h2>
+        <label for="login-user">Nome de usuário</label>
+        <input id="login-user" name="username" autocomplete="username" required minlength="3" maxlength="20" placeholder="seu_username">
+        <label for="login-pass">Senha</label>
+        <input id="login-pass" name="password" type="password" autocomplete="current-password" required>
+        <button class="button button-primary" type="submit">Entrar na conta</button>
+      </form>
+      <form id="register-form" class="account-form" hidden>
+        <h2>Chega mais!</h2>
+        <p>Escolha um apelido e uma senha de pelo menos 12 caracteres.</p>
+        <label for="register-user">Nome de usuário</label>
+        <input id="register-user" name="username" autocomplete="username" required minlength="3" maxlength="20" pattern="[A-Za-z0-9_]{3,20}" placeholder="seu_username">
+        <label for="register-pass">Senha</label>
+        <input id="register-pass" name="password" type="password" autocomplete="new-password" required minlength="12" maxlength="128">
+        <label for="register-confirm">Confirmar senha</label>
+        <input id="register-confirm" type="password" autocomplete="new-password" required minlength="12" maxlength="128">
+        <button class="button button-primary" type="submit">Criar conta gratuitamente</button>
+      </form>
+      <form id="recover-form" class="account-form" hidden>
+        <h2>Recupere seu acesso</h2>
+        <p>Use o código de recuperação que apareceu quando você criou sua conta. Sem ele ou a senha, não conseguimos confirmar a propriedade da conta.</p>
+        <label for="recover-user">Nome de usuário</label>
+        <input id="recover-user" autocomplete="username" required>
+        <label for="recover-code">Código de recuperação</label>
+        <input id="recover-code" autocomplete="off" required spellcheck="false">
+        <label for="recover-pass">Nova senha</label>
+        <input id="recover-pass" type="password" autocomplete="new-password" required minlength="12" maxlength="128">
+        <button class="button button-primary" type="submit">Redefinir senha</button>
+      </form>
+    </section>
+    <section class="account-card" id="account-panel" hidden>
+      <span class="account-avatar" aria-hidden="true">☺</span>
+      <h2 id="signed-username">Olá!</h2>
+      <p>Você está conectado à sua conta. Seus créditos e ranking persistentes chegarão na próxima etapa.</p>
+      <button id="sign-out" class="button button-outline" type="button">Sair da conta</button>
+    </section>
+    <section class="account-card recovery-card" id="recovery-panel" hidden aria-live="polite">
+      <h2>Guarde bem este código</h2>
+      <p>Ele é mostrado uma única vez e permite recuperar sua conta sem e-mail. Não compartilhe com ninguém: quem tiver este código pode redefinir sua senha.</p>
+      <div class="recovery-secret">
+        <code id="recovery-secret"></code>
+        <button class="button button-soft" type="button" id="copy-recovery">Copiar</button>
+      </div>
+      <button class="button button-primary" id="saved-recovery" type="button">Já guardei meu código</button>
+    </section>
+    <p class="error-message account-alert" id="account-error" role="alert" hidden></p>
+    <p class="account-disclaimer">Blackjack recreativo. Créditos exclusivamente fictícios, sem valor monetário.</p>
+  </main>
+</div>
+<script type="module" src="/src/client/account.ts"></script>
+</body>
+</html>
