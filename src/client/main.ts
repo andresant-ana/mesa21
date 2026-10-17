@@ -18,7 +18,11 @@ type PublicGame = {
   activeHand: 0 | 1;
   secondaryHand: SecondaryHand | null;
 };
-type Session = { casualCredits: number; rankedPoints: null; game: PublicGame | null };
+type Session = { casualCredits: number; rankedPoints: number | null; game: PublicGame | null };
+const isRanked = document.body.dataset.mode === "ranked";
+const sessionPath = isRanked ? "/api/ranked/session" : "/api/session";
+const startPath = isRanked ? "/api/ranked/start" : "/api/game/start";
+const actionPath = isRanked ? "/api/ranked/action" : "/api/game/action";
 
 const balanceElement = required<HTMLElement>("credit-balance");
 const dealerCardsElement = required<HTMLElement>("dealer-cards");
@@ -59,10 +63,12 @@ async function api<T>(path: string, body?: unknown): Promise<T> {
 
 async function loadSession(): Promise<void> {
   try {
-    const session = await api<Session>("/api/session");
+    const session = await api<Session>(sessionPath);
     renderSession(session);
-  } catch {
-    showError("Não foi possível conectar à mesa. Atualize a página para tentar de novo.");
+  } catch (error) {
+    showError(error instanceof Error && error.message === "UNAUTHORIZED"
+      ? "Entre na sua conta para acessar a mesa classificatória."
+      : "Não foi possível conectar à mesa. Atualize a página para tentar de novo.");
   }
 }
 
@@ -75,7 +81,7 @@ function renderSession(session: Session): void {
 }
 
 function renderGame(game: PublicGame | null): void {
-  const canRefill = currentCredits < 10 && (!game || game.phase === "finished");
+  const canRefill = !isRanked && currentCredits < 10 && (!game || game.phase === "finished");
   refillButton.hidden = !canRefill;
   refillButton.disabled = busy || !canRefill;
   const bettingPhase = !game || game.phase === "finished";
@@ -87,7 +93,7 @@ function renderGame(game: PublicGame | null): void {
     dealerTotalElement.textContent = "";
     playerTotalElement.hidden = false;
     playerTotalElement.textContent = "";
-    messageElement.textContent = "Uma mesa simples, só para você.";
+    messageElement.textContent = isRanked ? "Escolha sua aposta. Os resultados vão para o ranking." : "Uma mesa simples, só para você.";
     setActions(false, false);
     betElement.disabled = busy;
     newRoundButton.disabled = busy || currentCredits < 10;
@@ -258,19 +264,20 @@ async function perform(path: string, body: unknown): Promise<void> {
   }
 }
 function friendlyError(code: string): string {
-  if (code === "INSUFFICIENT_CREDITS") return "Você não tem créditos casuais suficientes para essa aposta.";
+  if (code === "INSUFFICIENT_CREDITS") return "Você não tem créditos suficientes para essa aposta.";
+  if (code === "UNAUTHORIZED") return "Entre na sua conta para jogar partidas classificatórias.";
   if (code === "ROUND_ACTIVE") return "Termine a rodada atual antes de começar outra.";
   if (code === "REFILL_NOT_AVAILABLE") return "Os créditos de cortesia estarão disponíveis quando você ficar sem fichas casuais.";
   if (code === "ORIGIN_NOT_ALLOWED") return "A origem da solicitação não foi aceita.";
   return "A ação não foi concluída. Tente novamente.";
 }
 
-hitButton.addEventListener("click", () => void perform("/api/game/action", { action: "hit" }));
-standButton.addEventListener("click", () => void perform("/api/game/action", { action: "stand" }));
-doubleButton.addEventListener("click", () => void perform("/api/game/action", { action: "double" }));
-splitButton.addEventListener("click", () => void perform("/api/game/action", { action: "split" }));
-newRoundButton.addEventListener("click", () => void perform("/api/game/start", { bet: Number(betElement.value) }));
-refillButton.addEventListener("click", () => void perform("/api/game/refill", {}));
+hitButton.addEventListener("click", () => void perform(actionPath, { action: "hit" }));
+standButton.addEventListener("click", () => void perform(actionPath, { action: "stand" }));
+doubleButton.addEventListener("click", () => void perform(actionPath, { action: "double" }));
+splitButton.addEventListener("click", () => void perform(actionPath, { action: "split" }));
+newRoundButton.addEventListener("click", () => void perform(startPath, { bet: Number(betElement.value) }));
+refillButton.addEventListener("click", () => { if (!isRanked) void perform("/api/game/refill", {}); });
 window.addEventListener("keydown", (event) => {
   if (event.altKey || event.ctrlKey || event.metaKey || event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement) return;
   const key = event.key.toLowerCase();

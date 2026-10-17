@@ -15,6 +15,8 @@ export default {
 
     const isRoomRequest = url.pathname === "/api/rooms" || url.pathname.startsWith("/api/rooms/");
     const isAuthRequest = url.pathname.startsWith("/api/auth/");
+    const isAccountRequest = isAuthRequest || url.pathname === "/api/wallet" || url.pathname.startsWith("/api/wallet/") ||
+      url.pathname === "/api/ranking" || url.pathname.startsWith("/api/ranked/");
     const isSocketRequest = isRoomRequest && url.pathname.endsWith("/stream");
     if (isSocketRequest) {
       const origin = request.headers.get("origin");
@@ -40,18 +42,18 @@ export default {
     }
 
     const token = getCookie(request.headers.get("cookie"), SESSION_COOKIE) ?? createSessionToken();
-    const namespace = isRoomRequest ? env.ROOM_LOBBY : isAuthRequest ? env.ACCOUNT_DIRECTORY : env.GAME_SESSIONS;
-    const id = namespace.idFromName(isRoomRequest ? "global-v1" : isAuthRequest ? "accounts-v1" : token);
+    const namespace = isRoomRequest ? env.ROOM_LOBBY : isAccountRequest ? env.ACCOUNT_DIRECTORY : env.GAME_SESSIONS;
+    const id = namespace.idFromName(isRoomRequest ? "global-v1" : isAccountRequest ? "accounts-v1" : token);
     const stub = namespace.get(id);
     const headers = new Headers(request.headers);
     // Never trust client-supplied identity forwarding headers.
     headers.delete("x-mesa21-session");
     headers.delete("x-mesa21-auth-token");
     if (isRoomRequest) headers.set("x-mesa21-session", token);
-    if (isAuthRequest) headers.set("x-mesa21-auth-token", getCookie(request.headers.get("cookie"), AUTH_COOKIE) ?? "");
+    if (isAccountRequest) headers.set("x-mesa21-auth-token", getCookie(request.headers.get("cookie"), AUTH_COOKIE) ?? "");
     let response: Response;
     try {
-      response = await stub.fetch(new Request("https://mesa21.internal" + url.pathname.replace(/^\/api/, ""), {
+      response = await stub.fetch(new Request("https://mesa21.internal" + url.pathname.replace(/^\/api/, "") + url.search, {
         method: request.method,
         headers,
         body: requestBody
@@ -65,7 +67,7 @@ export default {
 
     // Strip private credentials returned by the trusted Durable Object.
     let payload: Record<string, unknown> | null = null;
-    if (isAuthRequest && response.headers.get("content-type")?.includes("application/json")) {
+    if (isAccountRequest && response.headers.get("content-type")?.includes("application/json")) {
       try {
         const candidate: unknown = await response.json();
         if (candidate && typeof candidate === "object" && !Array.isArray(candidate)) {

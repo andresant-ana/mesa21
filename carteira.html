@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#faf8f5"><meta name="description" content="Créditos fictícios e bônus diário no MESA/21.">
+<title>MESA/21 — Meus créditos</title></head>
+<body><div class="app-shell">
+<header class="topbar"><a class="brand" href="/"><span>MESA</span><span class="brand-mark">/21</span></a>
+<nav class="room-nav"><a class="room-nav-link" href="/classificatoria.html">Classificatória</a>
+<a class="room-nav-link" href="/ranking.html">Ranking</a><a class="room-nav-link" href="/conta.html">Minha conta</a></nav></header>
+<main class="board-main"><section class="intro">
+<div><p class="eyebrow">SÓ CRÉDITOS DE BRINCADEIRA</p><h1>Meus créditos.</h1>
+<p class="intro-copy">Tudo aqui é fictício, sem depósitos, saques ou dinheiro de verdade.</p></div></section>
+<section class="board-card wallet-dashboard" aria-label="Resumo dos créditos">
+<div class="wallet-balance"><span>Saldo disponível</span><strong id="wallet-balance">—</strong></div>
+<div class="wallet-profit"><span>Lucro líquido nas partidas</span><strong id="wallet-profit">—</strong></div>
+<div class="wallet-daily"><div><strong>Bônus de hoje</strong><p>+500 créditos grátis, uma vez por dia (horário de Brasília).</p></div>
+<button id="claim-daily" class="button button-primary" type="button" disabled>Resgatar</button></div></section>
+<section class="board-card wallet-history"><h2>Movimentações recentes</h2>
+<div id="wallet-transactions" aria-live="polite">Carregando...</div></section>
+<p id="wallet-error" class="error-message" role="alert" hidden></p>
+<div class="board-cta"><a href="/classificatoria.html" class="button button-soft">Jogar classificatória →</a></div>
+<p class="board-note">O ranking usa apenas o resultado líquido das partidas. Bônus e créditos iniciais não contam como lucro.</p>
+</main></div>
+<script type="module" src="/src/client/credits.ts"></script></body></html>

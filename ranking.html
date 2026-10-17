@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="pt-BR"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#faf8f5"><meta name="description" content="Ranking recreativo de lucro fictício do MESA/21.">
+<title>MESA/21 — Ranking</title></head>
+<body><div class="app-shell">
+<header class="topbar"><a class="brand" href="/"><span>MESA</span><span class="brand-mark">/21</span></a>
+<nav class="room-nav" aria-label="Navegação"><a class="room-nav-link" href="/salas.html">Salas</a><a class="room-nav-link" href="/classificatoria.html">Classificatória</a><a class="room-nav-link" href="/conta.html">Minha conta</a></nav></header>
+<main class="board-main">
+<section class="intro"><div><p class="eyebrow">QUEM TÁ MANDANDO BEM?</p>
+<h1>Ranking da galera.</h1><p class="intro-copy">Só o lucro das partidas classificatórias conta. Bônus não entram na conta.</p></div></section>
+<div class="board-filters" role="group" aria-label="Período do ranking">
+<button class="period-button is-active" type="button" data-period="weekly">Semanal</button>
+<button class="period-button" type="button" data-period="monthly">Mensal</button>
+<button class="period-button" type="button" data-period="historical">Histórico</button></div>
+<section class="board-card"><div class="board-heading"><h2>Lucro líquido fictício</h2><span>Rodadas concluídas</span></div>
+<div id="rank-rows" class="rank-rows" aria-live="polite">Carregando ranking...</div></section>
+<p id="board-error" role="alert" class="error-message" hidden></p>
+<div class="board-cta"><a class="button button-primary" href="/classificatoria.html">Jogar uma partida →</a></div>
+<p class="board-note">Rankings são recreativos: resultados também dependem da sorte. Não há dinheiro nem premiação real.</p>
+</main></div>
+<script type="module" src="/src/client/ranking.ts"></script></body></html>

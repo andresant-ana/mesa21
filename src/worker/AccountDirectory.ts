@@ -1,4 +1,8 @@
 import type { DurableObjectState, Env } from "./types.ts";
+import { applyAction, createGame, createShuffledShoe, RESHUFFLE_REMAINING_CARDS, RuleError, toPublicGame } from "../domain/blackjack.ts";
+import type { Action, GameState } from "../domain/blackjack.ts";
+import { changeWallet, claimDaily, localDateKey, newWallet, rankedStats, WalletError } from "../domain/wallet.ts";
+import type { Wallet, RankPeriod } from "../domain/wallet.ts";
 
 type Account = {
   id: string;
@@ -8,6 +12,10 @@ type Account = {
   passwordHash: string;
   recoveryHash: string;
   createdAt: number;
+  wallet?: Wallet;
+  rankedGame?: GameState | null;
+  rankedRoundId?: string | null;
+  rankedBaseline?: number | null;
 };
 type AuthSession = { accountId: string; expiresAt: number; createdAt: number };
 type LoginThrottle = { failures: number; until: number };
@@ -117,8 +125,12 @@ export class AccountDirectory {
   }
 
   fetch(request: Request): Promise<Response> {
-    const current = this.queue.then(() => this.handle(request)).catch(() =>
-      response({ error: "INTERNAL_ERROR" }, 500));
+    const current = this.queue.then(() => this.handle(request)).catch((error: unknown) => {
+      if (error instanceof RuleError || error instanceof WalletError) {
+        return response({ error: error.code }, 409);
+      }
+      return response({ error: "INTERNAL_ERROR" }, 500);
+    });
     this.queue = current.then(() => undefined, () => undefined);
     return current;
   }
@@ -136,6 +148,42 @@ export class AccountDirectory {
       ? Object.values(database.accounts).find((account) => account.id === authSession.accountId)
       : undefined;
 
+    const wallet = currentAccount ? (currentAccount.wallet ??= newWallet(now)) : null;
+
+    if (path === "/ranking" && request.method === "GET") {
+      const period = new URL(request.url).searchParams.get("period") ?? "weekly";
+      if (!["weekly", "monthly", "historical"].includes(period)) {
+        return response({ error: "INVALID_PERIOD" }, 400);
+      }
+      const ranking = Object.values(database.accounts).map((account) => ({
+        username: account.username,
+        ...rankedStats(account.wallet ?? newWallet(now), period as RankPeriod, now)
+      })).filter((item) => item.handsPlayed > 0);
+      ranking.sort((a, b) => b.netProfit - a.netProfit || b.handsPlayed - a.handsPlayed ||
+        a.username.localeCompare(b.username, "pt-BR"));
+      return response({ period, ranking: ranking.slice(0, 100) });
+    }
+
+    if (path === "/wallet" && request.method === "GET") {
+      if (!wallet) return response({ error: "UNAUTHORIZED" }, 401);
+      return response({
+        balance: wallet.balance, lastDailyKey: wallet.lastDailyKey,
+        dailyAvailable: wallet.lastDailyKey !== localDateKey(now),
+        lifetimeProfit: wallet.lifetimeProfit, handsPlayed: wallet.handsPlayed,
+        blackjacks: wallet.blackjacks, transactions: wallet.ledger.slice(-30).reverse(),
+        rounds: wallet.rounds.slice(-20).reverse()
+      });
+    }
+
+    if (path === "/ranked/session" && request.method === "GET") {
+      if (!wallet || !currentAccount) return response({ error: "UNAUTHORIZED" }, 401);
+      return response({
+        casualCredits: wallet.balance,
+        rankedPoints: wallet.lifetimeProfit,
+        game: currentAccount.rankedGame ? toPublicGame(currentAccount.rankedGame) : null
+      });
+    }
+
     if (path === "/auth/me" && request.method === "GET") {
       return currentAccount ? response({ user: publicAccount(currentAccount) }) :
         response({ error: "UNAUTHORIZED" }, 401);
@@ -143,6 +191,61 @@ export class AccountDirectory {
     if (request.method !== "POST") return response({ error: "NOT_FOUND" }, 404);
     const body = await parseBody(request);
     if (!body) return response({ error: "INVALID_REQUEST" }, 400);
+
+    if (path === "/wallet/claim") {
+      if (!wallet || !currentAccount) return response({ error: "UNAUTHORIZED" }, 401);
+      if (currentAccount.rankedGame?.phase === "player") return response({ error: "ROUND_ACTIVE" }, 409);
+      claimDaily(wallet, now);
+      await this.storage.put("auth:v1", database);
+      return response({ balance: wallet.balance, lastDailyKey: wallet.lastDailyKey });
+    }
+
+    if (path === "/ranked/start") {
+      if (!wallet || !currentAccount) return response({ error: "UNAUTHORIZED" }, 401);
+      if (currentAccount.rankedGame?.phase === "player") return response({ error: "ROUND_ACTIVE" }, 409);
+      if (typeof body.bet !== "number") return response({ error: "INVALID_BET" }, 400);
+      const shoe = currentAccount.rankedGame?.shoe;
+      const readyShoe = shoe && shoe.length > RESHUFFLE_REMAINING_CARDS ? shoe : createShuffledShoe();
+      const before = wallet.balance;
+      const roundId = crypto.randomUUID();
+      const game = createGame(before, body.bet, readyShoe);
+      changeWallet(wallet, "round", -body.bet, now, roundId + ":bet", roundId);
+      if (game.balance !== wallet.balance) {
+        changeWallet(wallet, "round", game.balance - wallet.balance, now, roundId + ":deal", roundId);
+      }
+      currentAccount.rankedGame = game;
+      currentAccount.rankedRoundId = roundId;
+      currentAccount.rankedBaseline = before;
+      if (game.phase === "finished") {
+        recordFinishedRound(currentAccount, wallet, now);
+      }
+      await this.storage.put("auth:v1", database);
+      return response({ casualCredits: wallet.balance, rankedPoints: wallet.lifetimeProfit, game: toPublicGame(game) });
+    }
+
+    if (path === "/ranked/action") {
+      if (!wallet || !currentAccount) return response({ error: "UNAUTHORIZED" }, 401);
+      const action = body.action;
+      if (action !== "hit" && action !== "stand" && action !== "double" && action !== "split") {
+        return response({ error: "INVALID_ACTION" }, 400);
+      }
+      if (!currentAccount.rankedGame || !currentAccount.rankedRoundId) {
+        return response({ error: "NO_ACTIVE_ROUND" }, 409);
+      }
+      const game = applyAction(currentAccount.rankedGame, action as Action);
+      const change = game.balance - wallet.balance;
+      if (change) {
+        const order = wallet.ledger.filter((entry) => entry.roundId === currentAccount.rankedRoundId).length;
+        changeWallet(wallet, "round", change, now,
+          currentAccount.rankedRoundId + ":action:" + order, currentAccount.rankedRoundId);
+      }
+      currentAccount.rankedGame = game;
+      if (game.phase === "finished") {
+        recordFinishedRound(currentAccount, wallet, now);
+      }
+      await this.storage.put("auth:v1", database);
+      return response({ casualCredits: wallet.balance, rankedPoints: wallet.lifetimeProfit, game: toPublicGame(game) });
+    }
 
     if (path === "/auth/logout") {
       if (tokenHash) delete database.sessions[tokenHash];
@@ -165,7 +268,8 @@ export class AccountDirectory {
       const account: Account = {
         id: crypto.randomUUID(), username, key, passwordSalt: salt,
         passwordHash: await passwordHash(body.password, salt),
-        recoveryHash: await digest(recoveryCode), createdAt: now
+        recoveryHash: await digest(recoveryCode), createdAt: now,
+        wallet: newWallet(now), rankedGame: null, rankedRoundId: null, rankedBaseline: null
       };
       database.accounts[key] = account;
       const authToken = randomSecret();
@@ -217,4 +321,23 @@ export class AccountDirectory {
     }
     return response({ error: "NOT_FOUND" }, 404);
   }
+}
+
+function recordFinishedRound(account: Account, wallet: Wallet, now: number): void {
+  const game = account.rankedGame;
+  if (!game || game.phase !== "finished" || !account.rankedRoundId || account.rankedBaseline === null ||
+      account.rankedBaseline === undefined) throw new Error("ROUND_NOT_SETTLED");
+  const roundId = account.rankedRoundId;
+  const before = account.rankedBaseline;
+  // Once-only result recording: all wallet writes share AccountDirectory's serialized state.
+  if (wallet.rounds.some((entry) => entry.id === roundId)) return;
+  const result = game.result ?? "loss";
+  wallet.rounds.push({
+    id: roundId, at: now, dateKey: localDateKey(now), netProfit: wallet.balance - before,
+    result, wager: game.bet
+  });
+  wallet.lifetimeProfit += wallet.balance - before;
+  wallet.handsPlayed += 1;
+  if (result === "blackjack") wallet.blackjacks += 1;
+  account.rankedBaseline = null;
 }
