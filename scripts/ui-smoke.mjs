@@ -117,6 +117,15 @@ try {
   await page.locator('.chip-button[data-bet="20"]').click();
   assert.equal(await page.locator("#bet").inputValue(), "20", "solo chip selection updates the bet");
   await page.locator("#new-round").click();
+  await page.locator(".flying-card").first().waitFor({ state: "attached", timeout: 15_000 });
+  assert.equal(await page.locator(".flying-card").first().evaluate((card) => {
+    const deck = document.querySelector(".solo-table .deck-stack");
+    const rect = deck?.getBoundingClientRect();
+    if (!rect || !(card instanceof HTMLElement)) return false;
+    const x = parseFloat(card.style.left), y = parseFloat(card.style.top);
+    return Math.abs(x + card.offsetWidth / 2 - (rect.left + rect.width / 2)) < 2 &&
+      Math.abs(y + card.offsetHeight / 2 - (rect.top + rect.height / 2)) < 2;
+  }), true, "opening cards originate from the rendered deck position");
   await page.waitForFunction(() => document.querySelectorAll("#player-cards .playing-card").length >= 2,
     undefined, { timeout: 15_000 });
   assert.equal(await page.locator("#player-cards .playing-card").count(), 2, "solo round starts with one two-card hand");
@@ -130,6 +139,18 @@ try {
     if (width === 390) await page.screenshot({ path: "artifacts/ui/solo-table-mobile.png", fullPage: true });
   }
   await page.setViewportSize({ width: 1440, height: 900 });
+  // A new two-card hand must animate even when it replaces a prior two-card hand.
+  if (await page.locator("#stand").isVisible()) {
+    const wasHidden = await page.locator("#dealer-cards .card-back").count() > 0;
+    await page.locator("#stand").click();
+    if (wasHidden) assert.equal(await page.locator("#dealer-cards .card-flip").count(), 1,
+      "dealer hole card flips only when the server reveals it");
+  }
+  await page.locator("#new-round").waitFor({ state: "visible", timeout: 15_000 });
+  await page.locator("#new-round").click();
+  await page.locator(".flying-card").first().waitFor({ state: "attached", timeout: 15_000 });
+  assert.equal(await page.locator("#player-cards .playing-card").count(), 2,
+    "a replacement two-card opening hand animates");
 
   // Verify the shoe commitment is visible BEFORE anyone places a social bet.
   await page.goto(origin + "/salas.html", { waitUntil: "domcontentloaded" });
@@ -166,6 +187,8 @@ try {
     await page.waitForFunction(() => document.querySelectorAll("#social-player-hands .playing-card").length >= 4,
       undefined, { timeout: 15_000 });
     assert.equal(await page.locator(".social-player").count(), 5, "active players retain five visible table positions");
+    assert.ok(await page.locator(".flying-card").count() > 0 || await page.locator(".playing-card").count() > 0,
+      "multiplayer cards are delivered without blocking the table");
     assert.ok(await page.locator(".social-player.is-empty").count() >= 3, "unused table positions remain visible");
     const faceDownCards = page.locator("#social-dealer-cards .card-back");
     if (await faceDownCards.count()) assert.equal(await faceDownCards.first().getAttribute("aria-label"), "Carta fechada");
