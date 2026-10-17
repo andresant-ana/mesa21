@@ -1,6 +1,7 @@
 import "./styles.css";
 import "./rooms.css";
 import "./navigation.ts";
+import { cancelCardMotion, dealFromDeck, flipRevealedCard } from "./dealAnimation.ts";
 import { verifyRevealedShoe, verifyShoeDrawTrace, verifyShoeRoundReplay } from "../domain/shoeAudit.ts";
 import type { RevealedShoe } from "../domain/shoeAudit.ts";
 
@@ -10,7 +11,7 @@ type Entry = {
 };
 type SocialCard = { rank: string; suit: "clubs" | "diamonds" | "hearts" | "spades" };
 type SocialHand = { cards: SocialCard[]; total: number; wager: number; done: boolean; result: string | null };
-type SocialRound = { phase: "betting" | "playing" | "finished"; deadlineAt: number | null; dealerCards: Array<SocialCard | null>; dealerTotal: number | null; turnSeatId: string | null; seats: Array<{ id: string; wager: number; activeHand: number; hands: SocialHand[] }> };
+type SocialRound = { roundId: number; phase: "betting" | "playing" | "finished"; deadlineAt: number | null; dealerCards: Array<SocialCard | null>; dealerTotal: number | null; turnSeatId: string | null; seats: Array<{ id: string; wager: number; activeHand: number; hands: SocialHand[] }> };
 type Detail = Entry & {
   role: "visitor" | "player" | "spectator"; isHost: boolean; gameAvailable: boolean;
   members: Array<{ id: string; name: string; isHost: boolean }>;
@@ -50,6 +51,9 @@ let socket: WebSocket | null = null;
 let busy = false;
 let polling: number | null = null;
 let firstRoomSnapshot = true;
+let renderedRoundId: number | null = null;
+let priorDealerCards: Array<SocialCard | null> = [];
+let lastGameSnapshot = "";
 let timer: number | null = null;
 const previousHandSizes = new Map<string, number>();
 const CODE_PATTERN = /^[A-F0-9]{12}$/;
@@ -169,6 +173,8 @@ function connect(code: string): void {
 
 function renderRoom(room: Detail): void {
   opened = room;
+  const intro = document.querySelector<HTMLElement>(".rooms-main > .intro");
+  if (intro) intro.hidden = true;
   directory.hidden = true;
   detailPanel.hidden = false;
   element<HTMLElement>("opened-room-name").textContent = room.name;
@@ -218,20 +224,33 @@ function renderGameplay(room: Detail): void {
   const area = element<HTMLElement>("game-area");
   area.hidden = room.role === "visitor";
   if (area.hidden) return;
+  // Room changes can arrive via WebSocket AND HTTP. Replaying identical snapshots
+  // must not destroy an in-progress card flight.
+  const fingerprint = JSON.stringify({ round: room.round, members: room.members,
+    credits: room.myCredits, role: room.role, isHost: room.isHost });
+  if (fingerprint === lastGameSnapshot) return;
+  lastGameSnapshot = fingerprint;
+  cancelCardMotion();
   const round = room.round;
+  const newRound = round !== null && round.roundId !== renderedRoundId;
+  if (newRound) previousHandSizes.clear();
+  const arriving: HTMLElement[] = [];
   element<HTMLElement>("shoe-commitment").textContent =
     room.shoeAudit?.commitment ?? "Aguardando a primeira rodada.";
   const isPlayer = room.role === "player";
   const seat = round?.seats.find((s) => s.id === room.mySeatId);
   const dealer = element<HTMLElement>("social-dealer-cards");
   const hands = element<HTMLElement>("social-player-hands");
-  const previousDealerCount = dealer.querySelectorAll(".playing-card").length;
+  const previousDealerCount = newRound ? 0 : priorDealerCards.length;
   dealer.replaceChildren();
   hands.replaceChildren();
   element<HTMLElement>("game-credits").textContent = room.myCredits === null ? "Assistindo" : room.myCredits + " créditos da sala";
   if (round) {
     const dealerCards = round.dealerCards.map(socialCard);
-    if (!firstRoomSnapshot && dealerCards.length > previousDealerCount) dealerCards.slice(previousDealerCount).forEach((card) => card.classList.add("card-arrive"));
+    if (!firstRoomSnapshot && dealerCards.length > previousDealerCount) arriving.push(...dealerCards.slice(previousDealerCount));
+    if (!firstRoomSnapshot && !newRound && priorDealerCards[1] === null && round.dealerCards[1]) {
+      flipRevealedCard(dealerCards[1]!);
+    }
     dealer.append(...dealerCards);
     for (const member of room.members.slice(0, 5)) {
       const participant = round.seats.find((s) => s.id === member.id);
@@ -254,10 +273,7 @@ function renderGameplay(room: Detail): void {
         const handKey = participant.id + ":" + index;
         const priorSize = previousHandSizes.get(handKey) ?? 0;
         const handCards = hand.cards.map(socialCard);
-        if (!firstRoomSnapshot && handCards.length > priorSize) handCards.slice(priorSize).forEach((card, cardIndex) => {
-          card.classList.add("card-arrive");
-          card.style.setProperty("--deal-order", String(cardIndex));
-        });
+        if (!firstRoomSnapshot && handCards.length > priorSize) arriving.push(...handCards.slice(priorSize));
         previousHandSizes.set(handKey, handCards.length);
         cardRow.append(...handCards);
         section.append(title, cardRow);
@@ -287,6 +303,25 @@ function renderGameplay(room: Detail): void {
     }
   }
 
+  // A newly dealt opening hand follows the server's round-robin seat/dealer order.
+  // All target positions come from the rendered cards, not from fixed offsets.
+  if (round && !firstRoomSnapshot && previousDealerCount === 0 && round.dealerCards.length >= 2) {
+    const seatCards = Array.from(hands.querySelectorAll<HTMLElement>(".social-player:not(.is-empty)")).map((seat) =>
+      Array.from(seat.querySelectorAll<HTMLElement>(".playing-card")));
+    const order: HTMLElement[] = [];
+    for (const cards of seatCards) if (cards[0]) order.push(cards[0]);
+    const firstDealer = dealer.querySelector<HTMLElement>(".playing-card");
+    if (firstDealer) order.push(firstDealer);
+    for (const cards of seatCards) if (cards[1]) order.push(cards[1]);
+    const secondDealer = dealer.querySelectorAll<HTMLElement>(".playing-card")[1];
+    if (secondDealer) order.push(secondDealer);
+    for (const card of arriving) if (!order.includes(card)) order.push(card);
+    arriving.splice(0, arriving.length, ...order);
+  }
+  const table = area.querySelector<HTMLElement>(".deck-stack")?.closest<HTMLElement>(".mesa-table");
+  if (table) dealFromDeck(table, arriving);
+  renderedRoundId = round?.roundId ?? null;
+  priorDealerCards = round?.dealerCards ?? [];
   firstRoomSnapshot = false;
   const timerElement = document.getElementById("turn-timer");
   if (timerElement) {
@@ -344,7 +379,11 @@ async function openRoom(code: string, updateHistory = true): Promise<void> {
   }
   clearError();
   firstRoomSnapshot = true;
+  renderedRoundId = null;
+  priorDealerCards = [];
+  lastGameSnapshot = "";
   previousHandSizes.clear();
+  cancelCardMotion();
   closeSocket();
   try {
     const { room } = await api<{ room: Detail }>("/rooms/" + sanitized);
@@ -394,6 +433,10 @@ leaveButton.addEventListener("click", () => void withBusy(async () => {
   await api("/rooms/" + opened.code + "/leave", {});
   closeSocket();
   opened = null;
+  const intro = document.querySelector<HTMLElement>(".rooms-main > .intro");
+  if (intro) intro.hidden = false;
+  cancelCardMotion();
+  lastGameSnapshot = "";
   history.pushState({}, "", "/");
   detailPanel.hidden = true;
   element<HTMLElement>("game-area").hidden = true;
@@ -451,6 +494,8 @@ window.addEventListener("popstate", () => { closeSocket(); void initialize(); })
 
 async function initialize(): Promise<void> {
   clearError();
+  const intro = document.querySelector<HTMLElement>(".rooms-main > .intro");
+  if (intro) intro.hidden = false;
   const code = new URLSearchParams(location.search).get("sala");
   if (code) await openRoom(code, false);
   else { opened = null; detailPanel.hidden = true; element<HTMLElement>("game-area").hidden = true; directory.hidden = false; await withBusy(renderDirectory); }

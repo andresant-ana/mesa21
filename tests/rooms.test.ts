@@ -71,6 +71,25 @@ test("visitante não membro não recebe nomes, cartas ou provas de uma sala púb
   assert.equal((await request(visitor, "/rooms/" + room.code + "/audit")).status, 403);
 });
 
+test("cada nova rodada da sala possui identidade estável mesmo antes da distribuição", async () => {
+  const { request, storage, lobby } = setup();
+  const host = session("a");
+  const created = await request(host, "/rooms", create());
+  const { room } = await created.json() as { room: { code: string } };
+  const start = await request(host, "/rooms/" + room.code + "/start", {});
+  const first = (await start.json() as { room: { round: { roundId: number; phase: string } } }).room.round;
+  assert.equal(first.roundId, 1);
+  const saved = storage.get("rooms") as { rooms: Array<{ round: { deadlineAt: number } | null }> };
+  saved.rooms[0]!.round!.deadlineAt = Date.now() - 1;
+  await lobby.alarm();
+  const next = await request(host, "/rooms/" + room.code + "/start", {});
+  const second = (await next.json() as { room: { round: { roundId: number; phase: string } } }).room.round;
+  assert.equal(second.roundId, first.roundId + 1);
+  assert.equal(second.phase, "betting");
+  const repeat = await request(host, "/rooms/" + room.code);
+  assert.equal((await repeat.json() as { room: { round: { roundId: number } } }).room.round.roundId, second.roundId);
+});
+
 test("cinco jogadores e espectadores sem extrapolar lotação", async () => {
   const { request } = setup();
   const first = await request(session("a"), "/rooms", create());

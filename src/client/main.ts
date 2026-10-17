@@ -1,6 +1,7 @@
 import "./styles.css";
 import "./rooms.css";
 import "./navigation.ts";
+import { cancelCardMotion, dealFromDeck, flipRevealedCard } from "./dealAnimation.ts";
 
 type Suit = "clubs" | "diamonds" | "hearts" | "spades";
 type Card = { rank: string; suit: Suit };
@@ -46,6 +47,7 @@ let activeGame: PublicGame | null = null;
 let busy = false;
 let firstSnapshot = true;
 let renderedGame: PublicGame | null = null;
+let animateNextDeal = false;
 
 function required<T extends HTMLElement>(id: string): T {
   const element = document.getElementById(id);
@@ -85,7 +87,11 @@ function renderSession(session: Session): void {
 }
 
 function renderGame(game: PublicGame | null): void {
-  const table = document.querySelector(".solo-table");
+  cancelCardMotion();
+  const table = document.querySelector<HTMLElement>(".solo-table");
+  const freshlyDealt = animateNextDeal && !firstSnapshot;
+  animateNextDeal = false;
+  const arriving: HTMLElement[] = [];
   table?.classList.remove("result-win", "result-loss", "result-push");
   if (game?.phase === "finished") {
     table?.classList.add(game.result === "win" || game.result === "blackjack" ? "result-win" : game.result === "push" ? "result-push" : "result-loss");
@@ -118,13 +124,13 @@ function renderGame(game: PublicGame | null): void {
     return;
   }
 
-  const previousDealerCount = dealerCardsElement.querySelectorAll(".playing-card").length;
+  const previousDealerCount = renderedGame?.dealerCards.length ?? 0;
   const dealerCards = game.dealerCards.map((card) => card ? playingCard(card) : cardBack());
-  if (!firstSnapshot && dealerCards.length > previousDealerCount) {
-    dealerCards.slice(previousDealerCount).forEach((card, index) => {
-      card.classList.add("card-arrive");
-      card.style.setProperty("--deal-order", String(index));
-    });
+  if (!firstSnapshot && !freshlyDealt) {
+    arriving.push(...dealerCards.slice(previousDealerCount));
+    if (renderedGame?.dealerCards[1] === null && game.dealerCards[1]) {
+      flipRevealedCard(dealerCards[1]!);
+    }
   }
   dealerCardsElement.replaceChildren(...dealerCards);
   if (game.secondaryHand) {
@@ -136,27 +142,27 @@ function renderGame(game: PublicGame | null): void {
     );
     const renderedHands = playerCardsElement.querySelectorAll(".split-hand");
     [[game.playerCards.length, priorPrimary], [game.secondaryHand.cards.length, priorSecondary]].forEach(([size, prior], index) => {
-      if (!firstSnapshot && size > prior) {
-        const cards = renderedHands[index]?.querySelectorAll(".playing-card");
-        Array.from(cards ?? []).slice(prior).forEach((card, cardIndex) => {
-          card.classList.add("card-arrive");
-          (card as HTMLElement).style.setProperty("--deal-order", String(cardIndex));
-        });
+      if (!firstSnapshot && !freshlyDealt && size > prior) {
+        arriving.push(...Array.from(renderedHands[index]?.querySelectorAll<HTMLElement>(".playing-card") ?? []).slice(prior));
       }
     });
     playerTotalElement.hidden = true;
   } else {
-    const previousPlayerCount = playerCardsElement.querySelectorAll(".playing-card").length;
+    const previousPlayerCount = renderedGame?.playerCards.length ?? 0;
     const playerCards = game.playerCards.map(playingCard);
-    if (!firstSnapshot && playerCards.length > previousPlayerCount) {
-      playerCards.slice(previousPlayerCount).forEach((card, index) => {
-        card.classList.add("card-arrive");
-        card.style.setProperty("--deal-order", String(index));
-      });
-    }
+    if (!firstSnapshot && !freshlyDealt) arriving.push(...playerCards.slice(previousPlayerCount));
     playerCardsElement.replaceChildren(...playerCards);
     playerTotalElement.hidden = false;
   }
+  if (freshlyDealt) {
+    // Opening sequence alternates player/dealer from the actual deck.
+    const players = Array.from(playerCardsElement.querySelectorAll<HTMLElement>(".playing-card"));
+    for (let i = 0; i < Math.max(players.length, dealerCards.length); i += 1) {
+      if (players[i]) arriving.push(players[i]!);
+      if (dealerCards[i]) arriving.push(dealerCards[i]!);
+    }
+  }
+  if (table) dealFromDeck(table, arriving);
   firstSnapshot = false;
   renderedGame = game;
   dealerTotalElement.textContent = game.dealerTotal === null ? "" : String(game.dealerTotal);
@@ -302,13 +308,16 @@ async function perform(path: string, body: unknown): Promise<void> {
   betElement.disabled = true;
   errorElement.hidden = true;
   try {
-    renderSession(await api<Session>(path, body));
+    const next = await api<Session>(path, body);
+    currentCredits = next.casualCredits;
+    balanceElement.textContent = formatCredits(currentCredits);
+    activeGame = next.game;
+    animateNextDeal = path === startPath;
   } catch (error) {
     showError(error instanceof Error ? friendlyError(error.message) : "A ação não foi concluída.");
   } finally {
     busy = false;
-    if (activeGame) renderGame(activeGame);
-    else renderGame(null);
+    renderGame(activeGame);
   }
 }
 function friendlyError(code: string): string {
