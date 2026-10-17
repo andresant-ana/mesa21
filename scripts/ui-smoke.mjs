@@ -114,6 +114,11 @@ try {
   await page.screenshot({ path: "artifacts/ui/real-ranking-desktop.png", fullPage: true });
 
   await page.goto(origin + "/solo.html", { waitUntil: "domcontentloaded" });
+  for (const selector of ["#credit-balance", "#bet-controls", "#new-round"]) {
+    assert.equal(await page.locator(selector).evaluate((element) => Boolean(element.closest(".solo-table"))), true,
+      selector + " stays inside the solo felt table");
+  }
+  assert.equal(await page.locator("#new-round").innerText(), "JOGAR", "the new-round action is labeled JOGAR");
   await page.locator('.chip-button[data-bet="20"]').click();
   assert.equal(await page.locator("#bet").inputValue(), "20", "solo chip selection updates the bet");
   await page.locator("#new-round").click();
