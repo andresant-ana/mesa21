@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { RoomLobby } from "../src/worker/RoomLobby.ts";
 import worker from "../src/worker/index.ts";
+import { verifyRevealedShoe } from "../src/domain/shoeAudit.ts";
+import type { RevealedShoe } from "../src/domain/shoeAudit.ts";
 
 const session = (char: string) => char.repeat(43);
 const create = (name = "Mesa dos Crias", visibility = "public") =>
@@ -291,4 +293,51 @@ test("saída revoga sockets associados à sessão e impede novos eventos privado
   assert.equal((await invoke(host, "/rooms/" + room.code + "/start", {})).status, 200);
   assert.equal(received.length, previous, "former member must not receive private round updates");
   assert.ok(closed.some((reason) => reason.includes("encerrada")));
+});
+
+
+test("compromisso é publicado antes das apostas, prova só aparece após aposentar baralho", async () => {
+  const { request, storage } = setup();
+  const host = session("a");
+  const created = await request(host, "/rooms", create());
+  const { room } = await created.json() as { room: { code: string } };
+  const started = await request(host, "/rooms/" + room.code + "/start", {});
+  assert.equal(started.status, 200);
+  const snapshot = (await started.json() as { room: {
+    shoeAudit: { commitment: string; revealedCount: number };
+  } }).room;
+  assert.match(snapshot.shoeAudit.commitment, /^[0-9a-f]{64}$/);
+  assert.equal(snapshot.shoeAudit.revealedCount, 0);
+  const active = await request(host, "/rooms/" + room.code + "/audit");
+  const activeBody = await active.json() as { current: { commitment: string }; revealed: unknown[] };
+  assert.equal(activeBody.current.commitment, snapshot.shoeAudit.commitment);
+  assert.deepEqual(activeBody.revealed, []);
+  assert.ok(!JSON.stringify(activeBody).includes("nonce"));
+  assert.ok(!JSON.stringify(activeBody).includes("cards"));
+
+  // Simulate 75% penetration and round finish to isolate audit retirement behavior.
+  const stored = storage.get("rooms") as { rooms: Array<{
+    round: { phase: string; shoe: unknown[] };
+    audit: { active: { originalCards: unknown[] } };
+  }> };
+  stored.rooms[0]!.round.phase = "finished";
+  stored.rooms[0]!.round.shoe = stored.rooms[0]!.audit.active.originalCards.slice(234);
+  const second = await request(host, "/rooms/" + room.code + "/start", {});
+  assert.equal(second.status, 200);
+  const newSnapshot = (await second.json() as { room: {
+    shoeAudit: { commitment: string; revealedCount: number };
+  } }).room;
+  assert.notEqual(newSnapshot.shoeAudit.commitment, snapshot.shoeAudit.commitment);
+  assert.equal(newSnapshot.shoeAudit.revealedCount, 1);
+  const proofResponse = await request(host, "/rooms/" + room.code + "/audit");
+  const proofBody = await proofResponse.json() as {
+    current: { commitment: string; nonce?: string; cards?: unknown };
+    revealed: RevealedShoe[];
+  };
+  assert.equal(proofBody.current.commitment, newSnapshot.shoeAudit.commitment);
+  assert.equal(proofBody.current.nonce, undefined);
+  assert.equal(proofBody.current.cards, undefined);
+  assert.equal(proofBody.revealed[0]!.commitment, snapshot.shoeAudit.commitment);
+  assert.equal(proofBody.revealed[0]!.consumed, 234);
+  assert.equal(await verifyRevealedShoe(proofBody.revealed[0]!), true);
 });
