@@ -28,12 +28,15 @@ const errors: Record<string, string> = {
   INVALID_CREDENTIALS: "Credenciais inválidas. Confira seus dados ou o código de recuperação.",
   USERNAME_TAKEN: "Esse nome de usuário já está em uso.",
   TOO_MANY_ATTEMPTS: "Muitas tentativas. Espere 15 minutos antes de tentar novamente.",
-  RATE_LIMITED: "Muitas solicitações em pouco tempo. Aguarde um minuto e tente novamente.",
+  RATE_LIMITED: "Muitas tentativas de cadastro ou acesso. Aguarde um minuto e tente novamente.",
   RATE_LIMIT_UNAVAILABLE: "O serviço de segurança está temporariamente indisponível.",
   SIGNUP_LIMIT_REACHED: "Os cadastros estão temporariamente indisponíveis.",
   UNAUTHORIZED: "Entre com sua conta para continuar.",
   ORIGIN_NOT_ALLOWED: "Atualize a página e tente novamente.",
-  SERVICE_UNAVAILABLE: "O serviço está indisponível no momento."
+  SERVICE_UNAVAILABLE: "O serviço está indisponível no momento.",
+  INTERNAL_ERROR: "O servidor encontrou uma falha ao salvar a conta. Seus dados não foram confirmados; tente novamente em instantes.",
+  CLIENT_IDENTITY_UNAVAILABLE: "Não conseguimos validar sua conexão com segurança. Atualize a página e tente novamente.",
+  INVALID_REQUEST: "Confira os campos e tente novamente."
 };
 
 function showError(message: string): void {
@@ -111,7 +114,8 @@ forms.login.addEventListener("submit", (event) => {
       password: byId<HTMLInputElement>("login-pass").value
     });
     forms.login.reset();
-    if (result.user) showUser(result.user);
+    if (!result.user) throw new Error("O servidor não confirmou o acesso à conta. Entre novamente.");
+    showUser(result.user);
   });
 });
 forms.register.addEventListener("submit", (event) => {
@@ -136,8 +140,9 @@ forms.register.addEventListener("submit", (event) => {
       username: byId<HTMLInputElement>("register-user").value,
       password
     });
+    if (!result.user || !result.recoveryCode) throw new Error("O servidor não confirmou o cadastro e o código de recuperação.");
     forms.register.reset();
-    if (result.recoveryCode) showRecovery(result.recoveryCode);
+    showRecovery(result.recoveryCode);
   });
 });
 forms.recover.addEventListener("submit", (event) => {

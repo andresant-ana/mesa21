@@ -34,7 +34,7 @@ const dealerTotalElement = required<HTMLElement>("dealer-total");
 const playerTotalElement = required<HTMLElement>("player-total");
 const messageElement = required<HTMLElement>("round-message");
 const errorElement = required<HTMLElement>("error-message");
-const betElement = required<HTMLSelectElement>("bet");
+const betElement = required<HTMLInputElement>("bet");
 const betControls = required<HTMLElement>("bet-controls");
 const hitButton = required<HTMLButtonElement>("hit");
 const standButton = required<HTMLButtonElement>("stand");
@@ -343,7 +343,6 @@ document.querySelectorAll<HTMLButtonElement>(".chip-button").forEach((chip) => {
     renderGame(activeGame);
   });
 });
-betElement.addEventListener("change", () => renderGame(activeGame));
 refillButton.addEventListener("click", () => { if (!isRanked) void perform("/api/game/refill", {}); });
 window.addEventListener("keydown", (event) => {
   if (event.altKey || event.ctrlKey || event.metaKey || event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement) return;

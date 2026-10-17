@@ -30,8 +30,10 @@ async function waitForWorker() {
 async function noOverflow(page, label) {
   const state = await page.evaluate(() => ({
     screenWidth: window.innerWidth,
-    documentWidth: document.documentElement.scrollWidth
+    documentWidth: document.documentElement.scrollWidth,
+    pageCanScroll: document.documentElement.scrollHeight > window.innerHeight + 2
   }));
+  assert.ok(!state.pageCanScroll, label + " page scrolls vertically: " + JSON.stringify(state));
   assert.ok(state.documentWidth <= state.screenWidth + 2,
     label + " horizontal overflow: " + JSON.stringify(state));
 }
@@ -64,6 +66,8 @@ try {
         assert.equal(await page.locator(".solo-seat").count(), 1, "solo table reserves one player seat");
         assert.equal(await page.locator(".social-player").count(), 0, "solo does not render multiplayer seats");
         assert.equal(await page.locator("#table-bet").isVisible(), true, "solo shows the round wager");
+        assert.equal(await page.locator("#bet").getAttribute("type"), "hidden", "solo wager is selected only through chips");
+        assert.equal(await page.locator(".dealer-copy strong").innerText(), "dealer", "dealer is anonymous");
         assert.equal(await page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches), true,
           "browser test honors reduced-motion preference");
       }
@@ -77,6 +81,13 @@ try {
   const username = "qa_" + randomBytes(5).toString("hex");
   await page.goto(origin + "/conta.html", { waitUntil: "domcontentloaded" });
   await page.locator('[data-tab="register"]').click();
+  await page.locator("#register-user").fill("admin");
+  await page.locator("#register-pass").fill("FakePass8");
+  await page.locator("#register-confirm").fill("FakePass8");
+  await page.locator('#register-form button[type="submit"]').click();
+  await page.locator("#account-error").waitFor({ state: "visible", timeout: 10_000 });
+  assert.match(await page.locator("#account-error").innerText(), /Confira o nome de usuário/,
+    "signup backend errors are visible and specific");
   await page.locator("#register-user").fill(username);
   await page.locator("#register-pass").fill("7chars!");
   assert.equal(await page.locator("#register-pass").evaluate((input) => input.validity.tooShort), true,
@@ -95,6 +106,12 @@ try {
   await page.locator("#account-panel").waitFor({ state: "visible", timeout: 15_000 });
   await page.reload({ waitUntil: "domcontentloaded" });
   await page.locator("#account-panel").waitFor({ state: "visible", timeout: 15_000 });
+  await page.locator("#sign-out").click();
+  await page.locator("#auth-panel").waitFor({ state: "visible", timeout: 15_000 });
+  await page.locator("#login-user").fill(username);
+  await page.locator("#login-pass").fill("Q4t!z8Lm");
+  await page.locator('#login-form button[type="submit"]').click();
+  await page.locator("#account-panel").waitFor({ state: "visible", timeout: 15_000 });
 
   await page.goto(origin + "/carteira.html", { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => document.querySelector("#wallet-balance")?.textContent === "2.000", undefined, { timeout: 15_000 });
@@ -103,6 +120,7 @@ try {
   assert.equal(await page.locator("#claim-daily").isDisabled(), true);
 
   await page.goto(origin + "/classificatoria.html", { waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => document.querySelector("#credit-balance")?.textContent !== "—", undefined, { timeout: 15_000 });
   await page.locator("#new-round").waitFor({ state: "visible" });
   await page.locator("#new-round").click();
   await page.locator("#dealer-cards .playing-card").first().waitFor({ state: "visible", timeout: 15_000 });
@@ -123,16 +141,15 @@ try {
   assert.equal(await page.locator("#bet").inputValue(), "20", "solo chip selection updates the bet");
   await page.locator("#new-round").click();
   await page.locator(".flying-card").first().waitFor({ state: "attached", timeout: 15_000 });
-  const flightOrigin = await page.locator(".flying-card").first().evaluate((card) => {
-    const deck = document.querySelector(".solo-table .deck-stack");
-    const rect = deck?.getBoundingClientRect();
-    return { x: parseFloat(card.style.left), y: parseFloat(card.style.top),
-      width: parseFloat(card.style.width), height: parseFloat(card.style.height),
-      deckX: rect?.left, deckY: rect?.top, deckWidth: rect?.width, deckHeight: rect?.height };
-  });
-  assert.ok(flightOrigin.deckX !== undefined && flightOrigin.deckY !== undefined &&
-    Math.abs(flightOrigin.x + flightOrigin.width / 2 - (flightOrigin.deckX + flightOrigin.deckWidth / 2)) < 4 &&
-    Math.abs(flightOrigin.y + flightOrigin.height / 2 - (flightOrigin.deckY + flightOrigin.deckHeight / 2)) < 4,
+  const flightOrigin = await page.locator(".flying-card").first().evaluate((card) => ({
+    x: parseFloat(card.style.left), y: parseFloat(card.style.top),
+    width: parseFloat(card.style.width), height: parseFloat(card.style.height),
+    deckLeft: Number(card.dataset.deckLeft), deckTop: Number(card.dataset.deckTop),
+    deckWidth: Number(card.dataset.deckWidth), deckHeight: Number(card.dataset.deckHeight)
+  }));
+  assert.ok(
+    Math.abs(flightOrigin.x + flightOrigin.width / 2 - (flightOrigin.deckLeft + flightOrigin.deckWidth / 2)) < 4 &&
+    Math.abs(flightOrigin.y + flightOrigin.height / 2 - (flightOrigin.deckTop + flightOrigin.deckHeight / 2)) < 4,
     "opening cards originate from the rendered deck position: " + JSON.stringify(flightOrigin));
   await page.waitForFunction(() => document.querySelectorAll("#player-cards .playing-card").length >= 2,
     undefined, { timeout: 15_000 });

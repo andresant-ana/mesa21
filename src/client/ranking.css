@@ -20,3 +20,11 @@
 .board-cta { margin-top: 18px; }
 .board-note { color: #849188; font-size: 12px; margin-top: 22px; line-height: 1.5; }
 @media (max-width:520px) { .rank-item { gap: 8px; padding: 12px 9px; } .rank-profit { font-size: 11px; white-space: normal; text-align: right; } .board-heading span { display: none; } }
+
+
+body:has(.board-main) > .app-shell { width: min(100% - 40px, 1120px); }
+body:has(.board-main) .board-main { flex: 1; width: min(100%, 920px); padding-block: 0 12px; display: flex; flex-direction: column; }
+body:has(.board-main) .board-main > .intro { padding-block: 8px 16px; }
+body:has(.board-main) .board-card { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+body:has(.board-main) .rank-rows { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+body:has(.board-main) .board-cta, body:has(.board-main) .board-note { flex: 0 0 auto; }

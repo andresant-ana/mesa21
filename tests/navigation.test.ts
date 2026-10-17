@@ -35,3 +35,28 @@ test("help route is included in the Vite static build", async () => {
   assert.match(config, /"como-jogar\.html"/);
   assert.match(config, /"solo\.html"/);
 });
+
+
+test("solo and ranked games use graphical chip selection without wager dropdowns", async () => {
+  const [solo, ranked] = await Promise.all([read("solo.html"), read("classificatoria.html")]);
+  assert.match(solo, /type="hidden" value="50"/);
+  assert.match(solo, /data-bet="100"/);
+  assert.doesNotMatch(solo, /<select[^>]*id="bet"/);
+  assert.match(ranked, /data-mode="ranked"/);
+  assert.match(ranked, /data-bet="50"/);
+  assert.doesNotMatch(ranked, /<select[^>]*id="bet"/);
+  assert.match(ranked, /Mesa classificatória de blackjack/);
+  assert.match(ranked, /id="credit-balance"/);
+  assert.match(ranked, /class="table-stats">Aposta/);
+});
+
+test("lobby, solo, and ranked headers omit the credits banner", async () => {
+  const pages = await Promise.all(["index.html", "solo.html", "ranking.html", "classificatoria.html"].map(read));
+  for (const page of pages) assert.doesNotMatch(page, /Créditos fictícios<\/span>/);
+});
+
+test("the lobby has an independent scroll container for the room list", async () => {
+  const css = await read("src/client/rooms.css");
+  assert.match(css, /\.room-list \{ flex: 1; min-height: 0; overflow-y: auto/);
+  assert.match(css, /overscroll-behavior: contain/);
+});

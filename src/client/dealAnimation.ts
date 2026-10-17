@@ -31,13 +31,22 @@ export function dealFromDeck(table: HTMLElement, cards: HTMLElement[]): void {
     clone.classList.remove("card-in-flight", "card-flip");
     clone.classList.add("flying-card");
     clone.setAttribute("aria-hidden", "true");
+    // Keep a snapshot of the actual deck rectangle used for the flight.
+    clone.dataset.deckLeft = String(origin.left);
+    clone.dataset.deckTop = String(origin.top);
+    clone.dataset.deckWidth = String(origin.width);
+    clone.dataset.deckHeight = String(origin.height);
     clone.removeAttribute("role");
     clone.removeAttribute("aria-label");
     Object.assign(clone.style, {
-      position: "fixed", left: startX + "px", top: startY + "px",
+      position: "fixed",
       width: target.width + "px", height: target.height + "px",
       margin: "0", zIndex: "1000", pointerEvents: "none"
     });
+    // The animation portal uses viewport coordinates. Keep the source position
+    // on the inline style so card skin rules cannot pull it back to the hand.
+    clone.style.setProperty("left", startX + "px", "important");
+    clone.style.setProperty("top", startY + "px", "important");
     card.classList.add("card-in-flight");
     hiddenCards.add(card);
     document.body.append(clone);
