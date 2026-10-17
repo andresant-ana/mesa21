@@ -20,7 +20,7 @@ async function waitForWorker() {
   for (let i = 0; i < 70; i++) {
     if (server.exitCode !== null) throw new Error("Wrangler exited: " + logs);
     try {
-      const response = await fetch(origin + "/salas.html", { signal: AbortSignal.timeout(1500) });
+      const response = await fetch(origin + "/", { signal: AbortSignal.timeout(1500) });
       if (response.status === 200) return;
     } catch { /* boot */ }
     await delay(500);
@@ -45,15 +45,21 @@ try {
       viewport: { width, height: width <= 390 ? 844 : 900 }, reducedMotion: "reduce"
     });
     const page = await context.newPage();
-    for (const route of ["/salas.html", "/", "/ranking.html", "/conta.html", "/carteira.html"]) {
+    for (const route of ["/", "/salas.html", "/solo.html", "/ranking.html", "/como-jogar.html", "/conta.html", "/carteira.html"]) {
       const response = await page.goto(origin + route, { waitUntil: "domcontentloaded", timeout: 20_000 });
       assert.equal(response?.status(), 200, route + " status");
       assert.ok(await page.locator("h1").first().isVisible(), route + " missing heading");
       await noOverflow(page, width + " " + route);
       if (width === 1440 || width === 390) {
-        const slug = route === "/" ? "solo" : route.replace(/\W+/g, "-");
+      const slug = route === "/" ? "lobby" : route.replace(/\W+/g, "-");
         await page.screenshot({ path: "artifacts/ui/" + width + "-" + slug + ".png", fullPage: true });
       }
+      if (route === "/") {
+        assert.equal(await page.locator("#room-directory").isVisible(), true, "homepage shows room lobby");
+        assert.equal(await page.locator("#game-area").isVisible(), false, "homepage does not show a blackjack table");
+      }
+      if (route === "/solo.html") assert.equal(await page.locator(".table").isVisible(), true, "solo has a dedicated table");
+      if (route === "/ranking.html") assert.equal(await page.locator(".table, .room-game-table").count(), 0, "ranking excludes game UI");
     }
     await context.close();
   }
@@ -64,15 +70,23 @@ try {
   await page.goto(origin + "/conta.html", { waitUntil: "domcontentloaded" });
   await page.locator('[data-tab="register"]').click();
   await page.locator("#register-user").fill(username);
-  await page.locator("#register-pass").fill("Browser test safe password 2026!");
-  await page.locator("#register-confirm").fill("Browser test safe password 2026!");
+  await page.locator("#register-pass").fill("7chars!");
+  assert.equal(await page.locator("#register-pass").evaluate((input) => input.validity.tooShort), true,
+    "seven-character password is blocked by browser validation");
+  await page.locator("#register-pass").fill("Q4t!z8Lm");
+  await page.locator("#register-confirm").fill("Q4t!z8Lm");
   await page.locator('#register-form button[type="submit"]').click();
   await page.locator("#recovery-panel").waitFor({ state: "visible", timeout: 15_000 });
   const recoveryCode = await page.locator("#recovery-secret").textContent();
   assert.match(recoveryCode ?? "", /^[\w-]{40,64}$/);
+  assert.match(await page.locator("#recovery-panel h2").innerText(), /Conta criada com sucesso/);
   await page.screenshot({ path: "artifacts/ui/recovery-code-redacted.png", fullPage: true, mask: [page.locator("#recovery-secret")] });
   await page.locator("#saved-recovery").click();
-  await page.locator("#account-panel").waitFor({ state: "visible" });
+  await page.waitForURL(origin + "/", { timeout: 15_000 });
+  await page.goto(origin + "/conta.html", { waitUntil: "domcontentloaded" });
+  await page.locator("#account-panel").waitFor({ state: "visible", timeout: 15_000 });
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.locator("#account-panel").waitFor({ state: "visible", timeout: 15_000 });
 
   await page.goto(origin + "/carteira.html", { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => document.querySelector("#wallet-balance")?.textContent === "2.000", undefined, { timeout: 15_000 });
@@ -128,7 +142,7 @@ try {
     undefined, { timeout: 15_000 });
   await page.screenshot({ path: "artifacts/ui/room-shoe-commitment.png", fullPage: true });
   await context.close();
-  console.log("MESA/21 browser QA PASS: 4 viewports, 5 screens, signup, bonus, ranked game, real ranking, public shoe commitment");
+  console.log("MESA/21 browser QA PASS: 4 viewports, lobby/solo/ranking/help/auth, 8-character signup, session persistence, bonus, ranked game, multiplayer");
 } catch (error) {
   console.error(error);
   console.error("Wrangler logs:", logs);

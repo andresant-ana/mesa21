@@ -2,7 +2,7 @@
 
 ## Disponível nesta implementação
 - `/conta.html` em PT-BR: cadastro, login, recuperação, perfil conectado e logout.
-- `POST /api/auth/register`: username único (case insensitive) e senha de 12–128 caracteres.
+- `POST /api/auth/register`: username único (case insensitive) e senha de 8–128 caracteres.
 - `POST /api/auth/login`: verificação de senha e criação de sessão nova.
 - `GET /api/auth/me`: perfil público mínimo da sessão.
 - `POST /api/auth/logout`: revogação no servidor.

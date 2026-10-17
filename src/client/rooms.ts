@@ -1,5 +1,6 @@
 import "./styles.css";
 import "./rooms.css";
+import "./navigation.ts";
 import { verifyRevealedShoe, verifyShoeDrawTrace, verifyShoeRoundReplay } from "../domain/shoeAudit.ts";
 import type { RevealedShoe } from "../domain/shoeAudit.ts";
 
@@ -186,7 +187,7 @@ function renderRoom(room: Detail): void {
   leaveButton.hidden = !joined;
   inviteArea.hidden = !joined;
   joinArea.hidden = joined;
-  inviteLink.value = location.origin + "/salas.html?sala=" + room.code;
+  inviteLink.value = location.origin + "/?sala=" + room.code;
   renderGameplay(room);
   joinName.value ||= nick.value;
   if (joined && (!socket || socket.readyState === WebSocket.CLOSED)) connect(room.code);
@@ -283,7 +284,7 @@ async function openRoom(code: string, updateHistory = true): Promise<void> {
   closeSocket();
   try {
     const { room } = await api<{ room: Detail }>("/rooms/" + sanitized);
-    if (updateHistory) history.pushState({}, "", "/salas.html?sala=" + sanitized);
+    if (updateHistory) history.pushState({}, "", "/?sala=" + sanitized);
     renderRoom(room);
   } catch (error) {
     showError(String(error instanceof Error ? error.message : error));
@@ -308,7 +309,7 @@ createForm.addEventListener("submit", (event) => {
       visibility: visibility.value,
       mode: "casual"
     });
-    history.pushState({}, "", "/salas.html?sala=" + room.code);
+    history.pushState({}, "", "/?sala=" + room.code);
     renderRoom(room);
   });
 });
@@ -329,7 +330,7 @@ leaveButton.addEventListener("click", () => void withBusy(async () => {
   await api("/rooms/" + opened.code + "/leave", {});
   closeSocket();
   opened = null;
-  history.pushState({}, "", "/salas.html");
+  history.pushState({}, "", "/");
   detailPanel.hidden = true;
   element<HTMLElement>("game-area").hidden = true;
   directory.hidden = false;

@@ -1,102 +1,124 @@
 <!doctype html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#f8f5ef" />
-    <meta name="description" content="Blackjack solo, leve e gratuito. MESA/21 usa apenas créditos fictícios." />
-    <title>MESA/21 — Blackjack solo</title>
-  </head>
-  <body>
-    <div class="app-shell">
-      <header class="topbar">
-        <a class="brand" href="/" aria-label="MESA/21 — início">
-          <span>MESA</span><span class="brand-mark">/21</span>
-        </a>
-        <nav aria-label="Navegação" class="room-nav"><a class="room-nav-link" href="/salas.html">Salas sociais →</a><a class="room-nav-link" href="/conta.html">Minha conta</a><a class="room-nav-link" href="/classificatoria.html">Classificatória</a><a class="room-nav-link" href="/ranking.html">Ranking</a><span class="mode-pill"><span class="status-dot" aria-hidden="true"></span> Modo solo</span></nav>
-        <div class="credit-box" aria-live="polite">
-          <span class="credit-label">Créditos casuais</span>
-          <strong id="credit-balance">—</strong>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#faf8f5">
+  <meta name="description" content="Crie ou encontre mesas sociais gratuitas no MESA/21. Sem dinheiro real.">
+  <title>MESA/21 — Salas</title>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="MESA/21 — início"><span>MESA</span><span class="brand-mark">/21</span></a>
+      <nav class="room-nav" aria-label="Navegação principal"><a class="room-nav-link" href="/">Salas</a><a class="room-nav-link" href="/solo.html">Jogar solo</a><a class="room-nav-link" href="/ranking.html">Ranking</a><a class="room-nav-link" href="/como-jogar.html">Como jogar</a><a class="room-nav-link" href="/conta.html" data-nav-account>Entrar / Criar conta</a></nav>
+      <span class="mode-pill"><span class="status-dot" aria-hidden="true"></span> Créditos fictícios</span>
+    </header>
+    <main class="rooms-main">
+      <section class="intro" aria-labelledby="rooms-heading">
+        <div>
+          <p class="eyebrow">ENCONTRE SUA GALERA</p>
+          <h1 id="rooms-heading">Bora jogar juntos?</h1>
+          <p class="intro-copy">Crie uma mesa, compartilhe o convite ou encontre uma sala aberta.</p>
+          <div class="lobby-actions"><a class="button button-primary" href="#create-room">Criar uma sala</a><a class="button button-soft" href="/solo.html">Jogar solo</a><a class="button button-outline" href="/como-jogar.html">Como jogar</a></div>
         </div>
-      </header>
-
-      <main>
-        <section class="intro" aria-labelledby="page-title">
-          <div>
-            <p class="eyebrow">UMA PARTIDA TRANQUILA</p>
-            <h1 id="page-title">Blackjack, no seu ritmo.</h1>
-            <p class="intro-copy">Pratique suas decisões em uma mesa solo com créditos que não valem dinheiro.</p>
+      </section>
+      <section id="room-directory" class="directory-layout">
+        <div class="directory-main">
+          <div class="section-heading"><h2>Mesas abertas</h2><button class="button button-outline" type="button" id="refresh-rooms">Atualizar</button></div>
+          <div id="room-list" class="room-list" aria-live="polite">Procurando mesas...</div>
+        </div>
+        <aside class="directory-side">
+          <form id="create-room" class="room-form">
+            <h2>Abra uma mesa</h2>
+            <p>Um espaço só de vocês, sem complicação.</p>
+            <label for="display-name">Seu apelido</label>
+            <input id="display-name" type="text" minlength="2" maxlength="20" required autocomplete="nickname" placeholder="Como podemos te chamar?">
+            <label for="room-name">Nome da mesa</label>
+            <input id="room-name" type="text" minlength="2" maxlength="42" required placeholder="Mesa dos Crias">
+            <label for="visibility">Quem pode entrar?</label>
+            <select id="visibility"><option value="public">Pública — aparece no lobby</option><option value="private">Privada — somente com convite</option></select>
+            <button class="button button-primary" type="submit">Criar mesa →</button>
+            <p class="room-hint">Por enquanto, somente salas casuais. O jogo solo já está disponível.</p>
+          </form>
+          <form id="join-code" class="room-form">
+            <h2>Recebeu um código?</h2>
+            <label for="room-code">Código do convite</label>
+            <input id="room-code" type="text" maxlength="12" minlength="12" required placeholder="12 caracteres" autocapitalize="characters">
+            <button class="button button-soft" type="submit">Encontrar mesa</button>
+          </form>
+        </aside>
+      </section>
+      <section id="room-details" class="room-details" hidden>
+        <a href="/" class="room-back">← Voltar às salas</a>
+        <div class="room-detail-header"><div><p class="eyebrow">SALA SOCIAL</p><h2 id="opened-room-name"></h2><p id="opened-room-meta"></p></div><button id="leave-room" class="button button-outline" type="button" hidden>Sair da sala</button></div>
+        <div class="room-detail-layout">
+          <div class="room-seats">
+            <h3>Quem tá na mesa?</h3>
+            <div id="room-members" class="room-members" aria-live="polite"></div>
+            <p id="room-spectators"></p>
+            <p class="room-hint">Joguem juntos contra a Clarice. Até cinco jogadores, cada um com sua mão e seus créditos fictícios.</p>
+            <a class="button button-soft room-solo-link" href="/solo.html">Jogar solo enquanto espera →</a>
           </div>
-          <p class="rules-note"><span aria-hidden="true">✦</span> Dealer para no 17</p>
-        </section>
-
-        <section class="table" aria-label="Mesa de blackjack">
-          <div class="dealer-row">
-            <div class="clarice-avatar" aria-hidden="true">
-              <svg viewBox="0 0 64 64">
-                <circle cx="32" cy="32" r="31" fill="#f9dfb1"/>
-                <path d="M12 28c0-14 8-22 20-22s20 8 20 22v13c0 10-9 18-20 18S12 51 12 41V28Z" fill="#49372f"/>
-                <path d="M17 30c0-10 6-16 15-16s15 6 15 16v10c0 9-6 14-15 14s-15-5-15-14V30Z" fill="#f3c7a4"/>
-                <path d="M17 30c1-9 6-14 15-14s14 5 15 14c-5-1-9-4-12-8-4 5-10 8-18 8Z" fill="#49372f"/>
-                <circle cx="26" cy="34" r="1.7" fill="#342823"/><circle cx="38" cy="34" r="1.7" fill="#342823"/>
-                <path d="M28 43c2 2 6 2 8 0" fill="none" stroke="#a85d57" stroke-width="1.8" stroke-linecap="round"/>
-                <path d="M20 55c2-7 8-10 12-10s10 3 12 10" fill="#1d3f36"/>
-                <path d="M24 25c2-2 5-2 7-1M34 24c2-1 5-1 7 1" fill="none" stroke="#49372f" stroke-width="2" stroke-linecap="round"/>
-              </svg>
+          <div class="room-invite">
+            <div id="join-area" hidden>
+              <h3>Chega mais!</h3>
+              <label for="join-name">Seu apelido</label>
+              <input id="join-name" maxlength="20" minlength="2" placeholder="Como podemos te chamar?">
+              <button id="join-room" class="button button-primary" type="button">Entrar na sala</button>
             </div>
-            <div class="dealer-copy">
-              <span class="eyebrow light">SUA DEALER</span>
-              <strong>Clarice</strong>
-            </div>
-            <div class="dealer-total" id="dealer-total" aria-live="polite"></div>
-          </div>
-          <div class="dealer-cards card-row" id="dealer-cards" aria-label="Cartas da dealer">
-            <p class="table-hint">Dê início à rodada quando estiver pronto.</p>
-          </div>
-
-          <div class="table-divider"><span>✦</span></div>
-
-          <div class="player-label">
-            <span class="eyebrow light">SUA MÃO</span>
-            <span id="player-total" class="hand-total" aria-live="polite"></span>
-          </div>
-          <div class="player-cards card-row" id="player-cards" aria-label="Suas cartas">
-            <div class="empty-card" aria-hidden="true">＋</div>
-            <div class="empty-card" aria-hidden="true">＋</div>
-          </div>
-          <div class="round-message" id="round-message" role="status" aria-live="polite">Uma mesa simples, só para você.</div>
-        </section>
-
-        <section class="controls" aria-label="Ações da partida">
-          <div class="bet-control" id="bet-controls">
-            <label for="bet">Aposta casual</label>
-            <div class="bet-select-wrap">
-              <select id="bet" name="bet" aria-label="Valor da aposta em créditos casuais">
-                <option value="10">10 créditos</option>
-                <option value="20">20 créditos</option>
-                <option value="50" selected>50 créditos</option>
-                <option value="100">100 créditos</option>
-              </select>
-              <span aria-hidden="true">⌄</span>
+            <div id="invite-area" hidden>
+              <h3>Chame seus amigos</h3>
+              <p>Compartilhe o convite por mensagem.</p>
+              <input id="invite-link" readonly aria-label="Link do convite">
+              <button id="copy-invite" class="button button-primary" type="button">Copiar convite</button>
+              <p id="connection-state" class="room-hint" role="status"></p>
             </div>
           </div>
-          <div class="action-buttons">
-            <button class="button button-soft" id="hit" type="button" disabled>Pedir carta</button>
-            <button class="button button-warm" id="stand" type="button" disabled>Parar</button>
-            <button class="button button-outline" id="double" type="button" disabled>Dobrar</button>
-            <button class="button button-outline" id="split" type="button" disabled hidden>Dividir mãos</button>
-            <button class="button button-primary" id="new-round" type="button">Nova partida <span aria-hidden="true">→</span></button>
-            <button class="button button-soft" id="refill" type="button" hidden>Receber créditos grátis</button>
+        </div>
+      </section>
+      <section id="game-area" class="room-game" aria-label="Partida de blackjack multiplayer" hidden>
+        <div class="section-heading"><h2>Partida em grupo</h2><span id="game-credits" class="mode-pill"></span></div>
+        <p id="game-status" class="intro-copy" role="status" aria-live="polite"></p>
+        <div class="room-game-table">
+          <div class="room-game-dealer">
+            <span class="eyebrow light">CLARICE · DEALER</span>
+            <div id="social-dealer-cards" class="room-game-cards"></div>
           </div>
-        </section>
-
-        <footer class="footnote">
-          <span>Créditos casuais são fictícios, não podem ser sacados e não contam para ranking.</span>
-          <span>As cartas e os resultados da partida são validados pelo servidor.</span>
-        </footer>
-        <p class="error-message" id="error-message" role="alert" hidden></p>
-      </main>
-    </div>
-    <script type="module" src="/src/client/main.ts"></script>
-  </body>
+          <div id="social-player-hands" class="room-game-hands"></div>
+        </div>
+        <div class="room-game-actions">
+          <button id="game-start" class="button button-primary" type="button" hidden>Começar rodada</button>
+          <div id="game-betting" hidden>
+            <label for="game-wager">Sua aposta</label>
+            <select id="game-wager">
+              <option value="10">10 créditos</option><option value="20">20 créditos</option>
+              <option value="50" selected>50 créditos</option><option value="100">100 créditos</option>
+            </select>
+            <button id="game-bet" type="button" class="button button-primary">Confirmar aposta</button>
+          </div>
+          <button id="game-deal" type="button" class="button button-soft" hidden>Distribuir cartas</button>
+          <div id="game-actions" hidden>
+            <button id="social-hit" type="button" class="button button-primary">Pedir</button>
+            <button id="social-stand" type="button" class="button button-warm">Parar</button>
+            <button id="social-double" type="button" class="button button-outline">Dobrar</button>
+            <button id="social-split" type="button" class="button button-outline">Dividir</button>
+          </div>
+          <button id="social-refill" type="button" class="button button-soft" hidden>Receber créditos casuais</button>
+        </div>
+        <details class="room-fairness">
+          <summary>Transparência das cartas</summary>
+          <p>Compromisso criptográfico publicado antes das apostas:</p>
+          <code id="shoe-commitment" class="shoe-commitment">Aguardando baralho...</code>
+          <button id="verify-shoe" type="button" class="button button-soft">Verificar baralhos aposentados</button>
+          <p id="shoe-audit-result" role="status" aria-live="polite"></p>
+          <p class="room-hint">A conferência verifica o compromisso de baralhos aposentados. Não comprova, sozinha, a aleatoriedade completa das partidas.</p>
+        </details>
+      </section>
+      <p id="rooms-error" class="error-message" role="alert" hidden></p>
+      <footer class="footnote"><span>Blackjack social com créditos exclusivamente fictícios, sem dinheiro real ou resgate.</span></footer>
+    </main>
+  </div>
+  <script type="module" src="/src/client/rooms.ts"></script>
+</body>
 </html>

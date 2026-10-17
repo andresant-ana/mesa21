@@ -84,7 +84,7 @@ async function parseBody(request: Request): Promise<Record<string, unknown> | nu
   } catch { return null; }
 }
 function validPassword(value: unknown): value is string {
-  return typeof value === "string" && value.length >= 12 && value.length <= 128 &&
+  return typeof value === "string" && value.length >= 8 && value.length <= 128 &&
     !/[\u0000-\u001f\u007f]/.test(value);
 }
 function validUsername(value: unknown): value is string {

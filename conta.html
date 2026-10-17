@@ -11,10 +11,7 @@
 <div class="app-shell">
   <header class="topbar">
     <a class="brand" href="/"><span>MESA</span><span class="brand-mark">/21</span></a>
-    <nav class="room-nav" aria-label="Navegação">
-      <a class="room-nav-link" href="/salas.html">Salas</a>
-      <a class="room-nav-link" href="/">Jogar solo</a>
-    </nav>
+    <nav class="room-nav" aria-label="Navegação principal"><a class="room-nav-link" href="/">Salas</a><a class="room-nav-link" href="/solo.html">Jogar solo</a><a class="room-nav-link" href="/ranking.html">Ranking</a><a class="room-nav-link" href="/como-jogar.html">Como jogar</a><a class="room-nav-link" href="/conta.html" data-nav-account>Entrar / Criar conta</a></nav>
   </header>
   <main class="account-main">
     <section class="account-intro">
@@ -38,13 +35,14 @@
       </form>
       <form id="register-form" class="account-form" hidden>
         <h2>Chega mais!</h2>
-        <p>Escolha um apelido e uma senha de pelo menos 12 caracteres.</p>
+        <p>Escolha um apelido e uma senha de pelo menos 8 caracteres.</p>
         <label for="register-user">Nome de usuário</label>
         <input id="register-user" name="username" autocomplete="username" required minlength="3" maxlength="20" pattern="[A-Za-z0-9_]{3,20}" placeholder="seu_username">
         <label for="register-pass">Senha</label>
-        <input id="register-pass" name="password" type="password" autocomplete="new-password" required minlength="12" maxlength="128">
+        <input id="register-pass" name="password" type="password" autocomplete="new-password" required minlength="8" maxlength="128" aria-describedby="register-password-hint">
+        <span id="register-password-hint" class="field-hint">Use de 8 a 128 caracteres.</span>
         <label for="register-confirm">Confirmar senha</label>
-        <input id="register-confirm" type="password" autocomplete="new-password" required minlength="12" maxlength="128">
+        <input id="register-confirm" type="password" autocomplete="new-password" required minlength="8" maxlength="128">
         <button class="button button-primary" type="submit">Criar conta gratuitamente</button>
       </form>
       <form id="recover-form" class="account-form" hidden>
@@ -55,7 +53,7 @@
         <label for="recover-code">Código de recuperação</label>
         <input id="recover-code" autocomplete="off" required spellcheck="false">
         <label for="recover-pass">Nova senha</label>
-        <input id="recover-pass" type="password" autocomplete="new-password" required minlength="12" maxlength="128">
+        <input id="recover-pass" type="password" autocomplete="new-password" required minlength="8" maxlength="128">
         <button class="button button-primary" type="submit">Redefinir senha</button>
       </form>
     </section>
@@ -66,13 +64,13 @@
       <div class="account-menu"><a class="button button-soft" href="/carteira.html">Meus créditos</a><a class="button button-soft" href="/classificatoria.html">Jogar classificatória</a><a class="button button-outline" href="/ranking.html">Ver ranking</a></div><button id="sign-out" class="button button-outline" type="button">Sair da conta</button>
     </section>
     <section class="account-card recovery-card" id="recovery-panel" hidden aria-live="polite">
-      <h2>Guarde bem este código</h2>
-      <p>Ele é mostrado uma única vez e permite recuperar sua conta sem e-mail. Não compartilhe com ninguém: quem tiver este código pode redefinir sua senha.</p>
+      <h2>Conta criada com sucesso</h2>
+      <p>Guarde este código de recuperação agora. Ele será mostrado uma única vez e permite recuperar sua conta sem e-mail. Não compartilhe com ninguém.</p>
       <div class="recovery-secret">
         <code id="recovery-secret"></code>
         <button class="button button-soft" type="button" id="copy-recovery">Copiar</button>
       </div>
-      <button class="button button-primary" id="saved-recovery" type="button">Já guardei meu código</button>
+      <button class="button button-primary" id="saved-recovery" type="button">Já guardei. Ir para as salas</button>
     </section>
     <p class="error-message account-alert" id="account-error" role="alert" hidden></p>
     <p class="account-disclaimer">Blackjack recreativo. Créditos exclusivamente fictícios, sem valor monetário.</p>

@@ -1,6 +1,7 @@
 import "./styles.css";
 import "./ranking.css";
 import "./credits.css";
+import "./navigation.ts";
 
 type Entry = { id: string; at: number; kind: "initial" | "daily" | "round"; amount: number; balanceAfter: number };
 type Wallet = { balance: number; lifetimeProfit: number; dailyAvailable: boolean; transactions: Entry[] };
