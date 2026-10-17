@@ -4,7 +4,7 @@ import { RESHUFFLE_REMAINING_CARDS, STARTING_CASUAL_CREDITS, MIN_BET } from "../
 import { dealTable, openBetting, placeTableBet, playTableAction, publicTable, TableError } from "../domain/socialGame.ts";
 import type { Action, Card } from "../domain/blackjack.ts";
 import type { TableRound } from "../domain/socialGame.ts";
-import { newAuditedShoe, retireShoe, publicShoeCommitment } from "../domain/shoeAudit.ts";
+import { newAuditedShoe, retireShoe, publicShoeCommitment, retainFinishedDraws } from "../domain/shoeAudit.ts";
 import type { ShoeAuditState } from "../domain/shoeAudit.ts";
 
 type Visibility = "public" | "private";
@@ -248,6 +248,11 @@ export class RoomLobby {
     if (action === "start") {
       if (room.host !== session) return result({ error: "HOST_ONLY" }, 403);
       if (room.round && room.round.phase !== "finished") return result({ error: "ROUND_ACTIVE" }, 409);
+      // Archive all actual draws from the completed round before touching the shoe.
+      // The active shoe and this archive stay private until irrevocable retirement.
+      if (room.round?.phase === "finished" && room.audit) {
+        retainFinishedDraws(room.audit, room.round.draws ?? []);
+      }
       const previous = room.round?.shoe;
       const canReuse = Boolean(previous && previous.length > RESHUFFLE_REMAINING_CARDS && room.audit);
       let shoe: Card[];

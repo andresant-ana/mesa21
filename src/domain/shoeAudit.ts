@@ -1,4 +1,5 @@
 import type { Card } from "./blackjack.ts";
+import type { TableDraw } from "./socialGame.ts";
 import { createShuffledShoe, SHOE_DECKS, RANKS, SUITS } from "./blackjack.ts";
 
 export const AUDIT_PROTOCOL = "mesa21-shoe-commit-v1";
@@ -7,6 +8,7 @@ export type ActiveShoeCommitment = {
   commitment: string;
   nonce: string;
   originalCards: Card[];
+  draws?: TableDraw[];
   committedAt: number;
 };
 export type RevealedShoe = {
@@ -15,6 +17,7 @@ export type RevealedShoe = {
   nonce: string;
   cards: Card[];
   consumed: number;
+  draws?: TableDraw[];
   committedAt: number;
   revealedAt: number;
 };
@@ -45,7 +48,7 @@ export async function newAuditedShoe(
   const commitment = await sha256(commitPayload(nonce, cards));
   return {
     shoe: [...shuffled],
-    active: { commitment, nonce, originalCards: cards, committedAt: now }
+    active: { commitment, nonce, originalCards: cards, draws: [], committedAt: now }
   };
 }
 
@@ -63,6 +66,7 @@ export function retireShoe(state: ShoeAuditState, remaining: number, now = Date.
     nonce: state.active.nonce,
     cards: structuredClone(state.active.originalCards),
     consumed: state.active.originalCards.length - remaining,
+    draws: structuredClone(state.active.draws ?? []),
     committedAt: state.active.committedAt,
     revealedAt: now
   };
@@ -96,4 +100,43 @@ export function publicShoeCommitment(audit: ShoeAuditState | null | undefined) {
     committedAt: audit.active.committedAt,
     revealedCount: audit.revealed.length
   } : null;
+}
+
+/**
+ * Preserve the authoritative engine's draw trace after a round has completely
+ * finished, before the next round can reuse or retire its shoe.
+ */
+export function retainFinishedDraws(
+  audit: ShoeAuditState,
+  draws: readonly TableDraw[],
+): void {
+  const saved = audit.active.draws ?? (audit.active.draws = []);
+  for (const draw of draws) {
+    if (!Number.isSafeInteger(draw.offset) || draw.offset !== saved.length ||
+        !audit.active.originalCards[draw.offset] ||
+        audit.active.originalCards[draw.offset]!.rank !== draw.card.rank ||
+        audit.active.originalCards[draw.offset]!.suit !== draw.card.suit) {
+      throw new Error("DRAW_TRACE_DIVERGENCE");
+    }
+    saved.push(structuredClone(draw));
+  }
+}
+
+/**
+ * Optional stronger check: every consumed card must be accounted for in its
+ * original order. This does NOT yet prove that a specific public game snapshot
+ * was faithfully rendered or that the dealer's strategy was followed.
+ */
+export function verifyShoeDrawTrace(proof: RevealedShoe): boolean {
+  if (!Array.isArray(proof.draws) || !Number.isSafeInteger(proof.consumed) ||
+    proof.draws.length !== proof.consumed || proof.consumed < 0 ||
+    proof.consumed > proof.cards.length) return false;
+  return proof.draws.every((draw, index) => {
+    const committedCard = proof.cards[index];
+    return draw.offset === index &&
+      typeof draw.recipient === "string" && (draw.recipient === "dealer" || /^[A-F0-9]{12}$/.test(draw.recipient)) &&
+      (draw.hand === 0 || draw.hand === 1) &&
+      !!committedCard && !!draw.card &&
+      draw.card.rank === committedCard.rank && draw.card.suit === committedCard.suit;
+  });
 }

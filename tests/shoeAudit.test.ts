@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createShuffledShoe } from "../src/domain/blackjack.ts";
-import { newAuditedShoe, retireShoe, publicShoeCommitment, verifyRevealedShoe } from "../src/domain/shoeAudit.ts";
+import { newAuditedShoe, retireShoe, publicShoeCommitment, verifyRevealedShoe, verifyShoeDrawTrace, retainFinishedDraws } from "../src/domain/shoeAudit.ts";
+import { openBetting, placeTableBet, dealTable, playTableAction } from "../src/domain/socialGame.ts";
 
 test("compromisso SHA-256 publica somente metadados, nunca baralho ou nonce ativo", async () => {
   const shoe = createShuffledShoe();
@@ -49,4 +50,59 @@ test("histórico mantém três últimas provas sem alterar compromisso ativo", a
   assert.equal(audit.revealed.length, 3);
   assert.equal(audit.active.commitment, active.commitment);
   assert.ok(audit.revealed.every((proof) => proof.commitment === active.commitment));
+});
+
+test("every dealt card is accountable against the sealed order after retirement", async () => {
+  const { shoe, active } = await newAuditedShoe(100);
+  const audit = { active, revealed: [] as ReturnType<typeof retireShoe>[] };
+  const wallet = { id: "ABCDEF012345", credits: 2_000 };
+  const first = openBetting([wallet], shoe);
+  placeTableBet(first, wallet, 10);
+  dealTable(first, [wallet]);
+  if (first.phase === "playing") playTableAction(first, [wallet], wallet.id, "stand");
+  assert.equal(first.phase, "finished");
+  assert.ok(first.draws.length >= 4);
+  assert.deepEqual(first.draws.map((item) => item.offset),
+    first.draws.map((_, index) => index));
+  retainFinishedDraws(audit, first.draws);
+
+  const second = openBetting([wallet], first.shoe);
+  placeTableBet(second, wallet, 10);
+  dealTable(second, [wallet]);
+  if (second.phase === "playing") playTableAction(second, [wallet], wallet.id, "stand");
+  assert.equal(second.phase, "finished");
+  retainFinishedDraws(audit, second.draws);
+  const proof = retireShoe(audit, second.shoe.length, 200);
+  assert.equal(proof.consumed, first.draws.length + second.draws.length);
+  assert.equal(await verifyRevealedShoe(proof), true);
+  assert.equal(verifyShoeDrawTrace(proof), true);
+
+  const changedOffset = structuredClone(proof);
+  changedOffset.draws![1]!.offset++;
+  assert.equal(verifyShoeDrawTrace(changedOffset), false);
+  const changedCard = structuredClone(proof);
+  changedCard.draws![0]!.card.rank = changedCard.draws![0]!.card.rank === "A" ? "K" : "A";
+  assert.equal(verifyShoeDrawTrace(changedCard), false);
+  const changedDestination = structuredClone(proof);
+  changedDestination.draws![0]!.recipient = "anonymous";
+  assert.equal(verifyShoeDrawTrace(changedDestination), false);
+  const missingEvent = structuredClone(proof);
+  missingEvent.draws!.pop();
+  assert.equal(verifyShoeDrawTrace(missingEvent), false);
+  assert.equal(verifyShoeDrawTrace({ ...proof, consumed: proof.consumed + 1 }), false);
+});
+
+test("rejects duplicate archival and cannot leak active draw transcript", async () => {
+  const { active, shoe } = await newAuditedShoe(100);
+  const audit = { active, revealed: [] as ReturnType<typeof retireShoe>[] };
+  const wallet = { id: "ABCDEF012345", credits: 2000 };
+  const round = openBetting([wallet], shoe);
+  placeTableBet(round, wallet, 10);
+  dealTable(round, [wallet]);
+  if (round.phase === "playing") playTableAction(round, [wallet], wallet.id, "stand");
+  retainFinishedDraws(audit, round.draws);
+  assert.throws(() => retainFinishedDraws(audit, round.draws), /DRAW_TRACE_DIVERGENCE/);
+  const publicRecord = JSON.stringify(publicShoeCommitment(audit));
+  assert.ok(!publicRecord.includes("draws"));
+  assert.ok(!publicRecord.includes("recipient"));
 });
