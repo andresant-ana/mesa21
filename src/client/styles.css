@@ -117,3 +117,13 @@ h1 { margin: 8px 0 7px; color: #202822; font: 800 clamp(26px, 4vw, 39px)/1.12 "P
 .room-nav-link { display: inline-flex; align-items: center; padding: 10px 14px; border-radius: 999px; color: #31594d; text-decoration: none; font-weight: 700; font-size: 13px; }
 .room-nav-link:hover, .room-nav-link:focus-visible { background: #e9f1eb; }
 @media(max-width:400px) { .room-nav .mode-pill { display: none; } .room-nav-link { padding-inline: 8px; } }
+
+/* Responsive app navigation: let labels scroll horizontally instead of squashing the game. */
+@media (max-width: 760px) {
+  .topbar { height: auto; min-height: 68px; padding-block: 12px; flex-wrap: wrap; }
+  .topbar > .room-nav, .topbar > nav.room-nav { order: 3; flex: 1 0 100%; min-width: 0; max-width: 100%; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; white-space: nowrap; }
+  .topbar > .room-nav::-webkit-scrollbar { display: none; }
+  .topbar > .credit-box { margin-left: auto; }
+  .room-nav .mode-pill { display: none; }
+  .brand { flex-shrink: 0; }
+}
