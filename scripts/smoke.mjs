@@ -79,6 +79,9 @@ async function upgrade(code, cookie) {
 
 try {
   await waitForWorker();
+  const hardenedPage = await fetch(base + "/conta.html");
+  assert.equal(hardenedPage.headers.get("x-frame-options"), "DENY");
+  assert.ok((hardenedPage.headers.get("content-security-policy") ?? "").includes("frame-ancestors 'none'"));
   // Persistent account lifecycle against a REAL local Durable Object.
   const username = "test_" + randomBytes(5).toString("hex");
   const password = "Long private demo password 2026!";
