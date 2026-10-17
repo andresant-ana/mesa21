@@ -5,7 +5,8 @@
 .account-card { max-width: 465px; margin: 0 auto 14px; background: #fffdfa; border: 1px solid #e8e6dd; border-radius: 26px; padding: clamp(20px, 4vw, 32px); box-shadow: 0 16px 48px rgba(29, 63, 54, .06); }
 .account-card h2 { font: 800 24px "Plus Jakarta Sans", sans-serif; letter-spacing: -.035em; color: #1d3f36; margin: 0 0 12px; }
 .account-card p { color: #67766b; line-height: 1.55; font-size: 14px; margin: 0 0 18px; }
-.account-menu { display: flex; flex-wrap: wrap; gap: 9px; margin: 15px 0; } .account-menu a { text-decoration: none; }\n.account-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; border-radius: 17px; padding: 5px; background: #f1f3ed; margin-bottom: 24px; }
+.account-menu { display: flex; flex-wrap: wrap; gap: 9px; margin: 15px 0; } .account-menu a { text-decoration: none; }
+.account-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; border-radius: 17px; padding: 5px; background: #f1f3ed; margin-bottom: 24px; }
 .account-tab { min-height: 43px; color: #496156; border: 0; border-radius: 13px; background: transparent; font: 700 13px "Plus Jakarta Sans", sans-serif; cursor: pointer; }
 .account-tab.is-active { background: #fffdfa; box-shadow: 0 2px 8px rgba(38, 59, 48, .08); color: #1d3f36; }
 .account-tab:focus-visible { outline: 3px solid #78c9ad; outline-offset: 2px; }
