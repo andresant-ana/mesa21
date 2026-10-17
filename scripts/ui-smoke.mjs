@@ -46,7 +46,7 @@ try {
     });
     const page = await context.newPage();
     for (const route of ["/salas.html", "/", "/ranking.html", "/conta.html", "/carteira.html"]) {
-      const response = await page.goto(origin + route, { waitUntil: "networkidle", timeout: 20_000 });
+      const response = await page.goto(origin + route, { waitUntil: "domcontentloaded", timeout: 20_000 });
       assert.equal(response?.status(), 200, route + " status");
       assert.ok(await page.locator("h1").first().isVisible(), route + " missing heading");
       await noOverflow(page, width + " " + route);
@@ -61,7 +61,7 @@ try {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
   const username = "qa_" + randomBytes(5).toString("hex");
-  await page.goto(origin + "/conta.html", { waitUntil: "networkidle" });
+  await page.goto(origin + "/conta.html", { waitUntil: "domcontentloaded" });
   await page.locator('[data-tab="register"]').click();
   await page.locator("#register-user").fill(username);
   await page.locator("#register-pass").fill("Browser test safe password 2026!");
@@ -74,19 +74,19 @@ try {
   await page.locator("#saved-recovery").click();
   await page.locator("#account-panel").waitFor({ state: "visible" });
 
-  await page.goto(origin + "/carteira.html", { waitUntil: "networkidle" });
-  await page.waitForFunction(() => document.querySelector("#wallet-balance")?.textContent === "2.000", { timeout: 15_000 });
+  await page.goto(origin + "/carteira.html", { waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => document.querySelector("#wallet-balance")?.textContent === "2.000", undefined, { timeout: 15_000 });
   await page.locator("#claim-daily").click();
-  await page.waitForFunction(() => document.querySelector("#wallet-balance")?.textContent === "2.500", { timeout: 15_000 });
+  await page.waitForFunction(() => document.querySelector("#wallet-balance")?.textContent === "2.500", undefined, { timeout: 15_000 });
   assert.equal(await page.locator("#claim-daily").isDisabled(), true);
 
-  await page.goto(origin + "/classificatoria.html", { waitUntil: "networkidle" });
+  await page.goto(origin + "/classificatoria.html", { waitUntil: "domcontentloaded" });
   await page.locator("#new-round").waitFor({ state: "visible" });
   await page.locator("#new-round").click();
   await page.locator("#dealer-cards .playing-card").first().waitFor({ state: "visible", timeout: 15_000 });
   await page.screenshot({ path: "artifacts/ui/ranked-game-desktop.png", fullPage: true });
   if (await page.locator("#stand").isVisible()) await page.locator("#stand").click();
-  await page.goto(origin + "/ranking.html", { waitUntil: "networkidle" });
+  await page.goto(origin + "/ranking.html", { waitUntil: "domcontentloaded" });
   await page.locator('[data-period="historical"]').click();
   await page.waitForFunction((name) => document.querySelector("#rank-rows")?.textContent?.includes(name), username, { timeout: 15_000 });
   await page.screenshot({ path: "artifacts/ui/real-ranking-desktop.png", fullPage: true });
