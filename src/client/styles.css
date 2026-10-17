@@ -177,3 +177,37 @@ h1 { margin: 8px 0 7px; color: #202822; font: 800 clamp(26px, 4vw, 39px)/1.12 "P
 }
 
 .solo-table .deck-stack { top: 118px; }
+
+
+/* Compact, centered, viewport-fitted pages; the lobby room list owns its scroll. */
+html, body { height: 100%; overflow: hidden; }
+.app-shell { height: 100dvh; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+.topbar { flex: 0 0 auto; }
+.rooms-main, .board-main, .how-main, .account-main, body > .app-shell > main { min-height: 0; }
+body:has(.solo-table) > .app-shell > main { flex: 1; display: flex; align-items: center; justify-content: center; }
+.solo-table { width: min(100%, 1000px); margin-inline: auto; }
+.dealer-avatar { width: 48px; height: 48px; flex: 0 0 48px; overflow: hidden; border: 2px solid rgba(255,255,255,.56); border-radius: 50%; background: #f3d7ad; box-shadow: 0 3px 10px rgba(0,0,0,.16); }
+.dealer-avatar svg { display: block; width: 100%; height: 100%; }
+.chip-button { cursor: pointer; }
+.chip-button:hover:not(:disabled) { transform: translateY(-3px) rotate(-4deg); box-shadow: 0 7px 15px rgba(0,0,0,.2); }
+.lobby-actions .button, .board-cta .button, .how-cta .button { min-height: 50px; padding: 0 22px; border-radius: 16px; font-size: 14px; letter-spacing: .01em; box-shadow: 0 7px 15px rgba(31,57,44,.1); }
+.lobby-actions .button-primary, .board-cta .button-primary, .how-cta .button-primary { box-shadow: 0 8px 18px rgba(193,75,59,.22); }
+.lobby-actions .button-outline, .how-cta .button-soft { border: 1px solid #d7e0d8; background: #fffdfa; }
+.button:hover:not(:disabled) { filter: brightness(1.02); box-shadow: 0 7px 17px rgba(28,63,54,.15); }
+@media (max-width: 760px) {
+  .app-shell { width: min(100% - 24px, 1120px); }
+  .topbar { min-height: 64px; }
+  body:has(.solo-table) > .app-shell > main { overflow: hidden; }
+  .solo-table { min-height: 0; max-height: 100%; }
+  .footnote { display: none; }
+}
+@media (max-width: 400px) {
+  .app-shell { width: calc(100% - 16px); }
+  .room-nav-link { padding: 7px 8px; font-size: 11px; }
+  .solo-table .table-status { align-items: center; }
+  .solo-table .solo-table-mode { font-size: 11px; }
+  .solo-table .solo-table-credit strong { font-size: 14px; }
+  .solo-table .action-buttons { gap: 6px; }
+  .solo-table .button { font-size: 11px; }
+  .lobby-actions .button, .board-cta .button, .how-cta .button { padding-inline: 14px; }
+}
