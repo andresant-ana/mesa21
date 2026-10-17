@@ -100,6 +100,32 @@ try {
   assert.ok(rotatedCookie);
   assert.equal((await request("/auth/me", authCookie)).status, 401);
   assert.equal((await request("/auth/me", rotatedCookie)).status, 200);
+  const initialWallet = await request("/wallet", rotatedCookie);
+  assert.equal(initialWallet.status, 200);
+  assert.equal(initialWallet.payload.balance, 2000);
+  assert.equal(initialWallet.payload.lifetimeProfit, 0);
+  const bonus = await request("/wallet/claim", rotatedCookie, {});
+  assert.equal(bonus.status, 200);
+  assert.equal(bonus.payload.balance, 2500);
+  assert.equal((await request("/wallet/claim", rotatedCookie, {})).status, 409);
+  const ranked = await request("/ranked/start", rotatedCookie, { bet: 10 });
+  assert.equal(ranked.status, 200, JSON.stringify(ranked.payload));
+  assert.equal(ranked.payload.game.shoe, undefined);
+  let rankedResult = ranked.payload;
+  if (rankedResult.game.phase === "player") {
+    const finish = await request("/ranked/action", rotatedCookie, { action: "stand" });
+    assert.equal(finish.status, 200, JSON.stringify(finish.payload));
+    rankedResult = finish.payload;
+  }
+  assert.equal(rankedResult.game.phase, "finished");
+  assert.equal((await request("/ranked/action", rotatedCookie, { action: "stand" })).status, 409);
+  const settledWallet = await request("/wallet", rotatedCookie);
+  assert.equal(settledWallet.payload.rounds.length, 1);
+  assert.equal(settledWallet.payload.lifetimeProfit, settledWallet.payload.balance - 2500);
+  const ranking = await request("/ranking?period=historical", rotatedCookie);
+  assert.equal(ranking.status, 200);
+  assert.ok(ranking.payload.ranking.some((entry) => entry.username === username &&
+    entry.netProfit === settledWallet.payload.lifetimeProfit));
   assert.equal((await request("/auth/logout", rotatedCookie, {})).status, 200);
   assert.equal((await request("/auth/me", rotatedCookie)).status, 401);
 
@@ -156,7 +182,7 @@ try {
   assert.equal(privateRoom.status, 201);
   const publicListing = (await request("/rooms", guest)).payload.rooms;
   assert.ok(!publicListing.some((entry) => entry.code === privateRoom.payload.room.code));
-  console.log("MESA/21 runtime smoke: accounts/recovery, HTTP, DO, WebSocket upgrade, multiplayer, privacy PASS");
+  console.log("MESA/21 runtime smoke: accounts/recovery, wallet/ranking, HTTP, DO, WebSocket upgrade, multiplayer, privacy PASS");
 } catch (error) {
   console.error(error);
   console.error("Wrangler tail:\n" + logTail);
