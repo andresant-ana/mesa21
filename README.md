@@ -46,7 +46,7 @@ Classificatória multiplayer com ledger entre objetos, perfil público completo,
 
 Requisito: Node.js 22.12 ou superior.
 
-1. Instale dependências com npm install.
+1. Instale dependências reproduzíveis com npm ci.
 2. Rode npm run check, npm test, npm run build e npm run smoke.
 3. Em terminais separados, rode npm run dev:api e npm run dev.
 4. Abra http://localhost:5173.
@@ -69,5 +69,6 @@ Wrangler mantém os Durable Objects no ambiente local.
 - docs/SHOE_COMMITMENT.md: formato verificável de compromissos e limitações da fairness.
 - docs/BROWSER_QA.md: evidências de QA no Chromium.
 - docs/DEPLOYMENT.md: gates de produção Cloudflare.
+- docs/AUDIT_2026-10-17.md: auditoria de privacidade, limites operacionais e bloqueios de alpha fechada.
 
 O repositório apresenta exclusivamente MESA/21. Leia a arquitetura, a auditoria Stitch e o plano para detalhes.
