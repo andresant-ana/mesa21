@@ -120,6 +120,7 @@ try {
   assert.equal(await page.locator("#claim-daily").isDisabled(), true);
 
   await page.goto(origin + "/classificatoria.html", { waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => document.querySelector("#credit-balance")?.textContent !== "—", undefined, { timeout: 15_000 });
   await page.locator("#new-round").waitFor({ state: "visible" });
   await page.locator("#new-round").click();
   await page.locator("#dealer-cards .playing-card").first().waitFor({ state: "visible", timeout: 15_000 });
