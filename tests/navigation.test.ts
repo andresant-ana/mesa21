@@ -22,7 +22,10 @@ test("solo blackjack has a dedicated route and ranking has no game table", async
 
 test("legacy room links retain invitation query when redirecting to lobby", async () => {
   const legacy = await read("salas.html");
-  assert.match(legacy, /location\.replace\("\/"\+location\.search\+location\.hash\)/);
+  const redirect = await read("src/client/legacyRedirect.ts");
+  assert.match(legacy, /src="\/src\/client\/legacyRedirect\.ts"/);
+  assert.match(redirect, /location\.replace\(target\)/);
+  assert.match(redirect, /location\.search/);
 });
 
 test("help route is included in the Vite static build", async () => {
