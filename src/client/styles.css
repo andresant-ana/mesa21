@@ -127,3 +127,53 @@ h1 { margin: 8px 0 7px; color: #202822; font: 800 clamp(26px, 4vw, 39px)/1.12 "P
   .room-nav .mode-pill { display: none; }
   .brand { flex-shrink: 0; }
 }
+
+
+/* Solo game controls belong to the felt, so the table contains the full play loop. */
+.solo-table { padding-bottom: 23px; }
+.solo-table-status { position: relative; z-index: 2; margin: 0 4px 14px; padding: 0 0 13px; border-bottom: 1px solid rgba(237, 220, 170, .24); }
+.solo-table-mode { color: #f6f0da; font-weight: 700; }
+.solo-table-metrics { display: flex; align-items: center; gap: clamp(12px, 2.4vw, 28px); }
+.solo-table-credit { display: grid; gap: 2px; text-align: right; }
+.solo-table-credit .credit-label { color: #d2e3d7; font-size: 10px; letter-spacing: .04em; }
+.solo-table-credit strong { color: #fffdfa; font: 700 16px "Plus Jakarta Sans", sans-serif; font-variant-numeric: tabular-nums; }
+.solo-table-rules { color: #d2e3d7; font-size: 11px; white-space: nowrap; }
+.solo-table-rules > span { color: #ffe082; margin-right: 4px; }
+.solo-table .table-stats { padding: 8px 12px; border: 1px solid rgba(244, 226, 177, .34); border-radius: 999px; color: #f4df9e; white-space: nowrap; }
+.solo-table .table-stats strong { font-variant-numeric: tabular-nums; }
+.solo-table .controls { position: relative; z-index: 2; display: grid; grid-template-columns: minmax(170px, auto) 1fr; align-items: center; gap: clamp(14px, 2.5vw, 30px); margin-top: 11px; padding: 15px 4px 0; border-top: 1px solid rgba(237, 220, 170, .24); }
+.solo-table .bet-control { color: #f6f0da; }
+.solo-table .bet-control label { color: #e4eadf; font-size: 11px; letter-spacing: .04em; }
+.solo-table .chip-tray { min-height: 42px; align-items: center; gap: 9px; }
+.solo-table .chip-button { transition: transform .14s ease, box-shadow .14s ease; }
+.solo-table .chip-button[aria-pressed="true"] { box-shadow: 0 0 0 2px #ffe082, 0 5px 12px rgba(0, 0, 0, .24); }
+.solo-table .bet-select-wrap select { min-width: 0; width: 100%; }
+.solo-table .action-buttons { justify-content: flex-end; gap: 9px; }
+.solo-table .button-outline { color: #f6f0da; border-color: rgba(235, 242, 231, .52); }
+.solo-table .button-outline:hover:not(:disabled) { background: rgba(255, 255, 255, .1); }
+.solo-table #new-round { min-width: 128px; font-weight: 800; letter-spacing: .08em; }
+.solo-table #refill { background: #e3eedf; }
+@media (max-width: 760px) {
+  .solo-table-status { align-items: flex-start; gap: 12px; }
+  .solo-table-metrics { flex-wrap: wrap; justify-content: flex-end; gap: 8px 12px; }
+  .solo-table-rules { display: none; }
+  .solo-table .controls { grid-template-columns: minmax(0, 1fr); gap: 12px; padding-inline: 0; }
+  .solo-table .bet-control { grid-template-columns: auto 1fr; align-items: center; column-gap: 12px; }
+  .solo-table .bet-control label { grid-column: 1 / -1; }
+  .solo-table .bet-select-wrap { grid-column: 2; }
+  .solo-table .chip-tray { grid-column: 1; grid-row: 2; }
+  .solo-table .action-buttons { grid-column: 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .solo-table .button { min-width: 0; padding-inline: 10px; }
+  .solo-table #new-round { min-height: 48px; grid-column: 1 / -1; }
+}
+@media (max-width: 380px) {
+  .solo-table { padding-inline: 15px; }
+  .solo-table-status { margin-inline: 0; }
+  .solo-table-metrics { gap: 6px; }
+  .solo-table .table-stats { padding: 7px 9px; }
+  .solo-table .bet-control { column-gap: 8px; }
+  .solo-table .chip-tray { gap: 7px; }
+  .solo-table .chip-button { width: 35px; height: 35px; }
+}
+
+.solo-table .deck-stack { top: 118px; }

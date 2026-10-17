@@ -14,10 +14,6 @@
           <span>MESA</span><span class="brand-mark">/21</span>
         </a>
         <nav class="room-nav" aria-label="Navegação principal"><a class="room-nav-link" href="/">Salas</a><a class="room-nav-link" href="/solo.html">Jogar solo</a><a class="room-nav-link" href="/ranking.html">Ranking</a><a class="room-nav-link" href="/como-jogar.html">Como jogar</a><a class="room-nav-link" href="/conta.html" data-nav-account>Entrar / Criar conta</a></nav>
-        <div class="credit-box" aria-live="polite">
-          <span class="credit-label">Créditos casuais</span>
-          <strong id="credit-balance">—</strong>
-        </div>
       </header>
 
       <main>
@@ -27,12 +23,18 @@
             <h1 id="page-title">Blackjack, no seu ritmo.</h1>
             <p class="intro-copy">Pratique suas decisões em uma mesa solo com créditos que não valem dinheiro.</p>
           </div>
-          <p class="rules-note"><span aria-hidden="true">✦</span> Dealer para no 17</p>
         </section>
 
         <section class="table mesa-table solo-table" aria-label="Mesa de blackjack">
           <div class="deck-stack" aria-label="Baralho de Clarice"><span></span><span></span><span></span></div>
-          <div class="table-status"><span>Partida solo</span><span class="table-stats">Aposta <strong id="table-bet">—</strong></span></div>
+          <div class="table-status solo-table-status">
+            <span class="solo-table-mode">Partida solo</span>
+            <div class="solo-table-metrics">
+              <div class="solo-table-credit" aria-live="polite"><span class="credit-label">Créditos</span><strong id="credit-balance">—</strong></div>
+              <span class="solo-table-rules"><span aria-hidden="true">✦</span> Dealer para no 17</span>
+              <span class="table-stats">Aposta <strong id="table-bet">—</strong></span>
+            </div>
+          </div>
           <div class="dealer-row">
             <div class="clarice-avatar" aria-hidden="true">
               <svg viewBox="0 0 64 64">
@@ -68,9 +70,7 @@
           </div>
           <div class="solo-seat" aria-label="Seu assento"><span class="seat-avatar">EU</span><span><strong>Seu assento</strong><small id="seat-wager">Escolha suas fichas</small></span><span class="seat-chips" aria-hidden="true"><i></i><i></i><i></i></span></div>
           <div class="round-message" id="round-message" role="status" aria-live="polite">Uma mesa simples, só para você.</div>
-        </section>
-
-        <section class="controls" aria-label="Ações da partida">
+          <section class="controls" aria-label="Ações da partida">
           <div class="bet-control" id="bet-controls">
             <label for="bet">Aposta casual</label>
             <div class="chip-tray" role="group" aria-label="Selecione o valor da ficha"><button class="chip-button chip-coral" type="button" data-bet="10" aria-label="Apostar 10 créditos" aria-pressed="false">10</button><button class="chip-button chip-cream" type="button" data-bet="20" aria-label="Apostar 20 créditos" aria-pressed="false">20</button><button class="chip-button chip-yellow" type="button" data-bet="50" aria-label="Apostar 50 créditos" aria-pressed="true">50</button><button class="chip-button chip-green" type="button" data-bet="100" aria-label="Apostar 100 créditos" aria-pressed="false">100</button></div>
@@ -89,9 +89,10 @@
             <button class="button button-warm" id="stand" type="button" disabled>Parar</button>
             <button class="button button-outline" id="double" type="button" disabled>Dobrar</button>
             <button class="button button-outline" id="split" type="button" disabled hidden>Dividir mãos</button>
-            <button class="button button-primary" id="new-round" type="button">Nova partida <span aria-hidden="true">→</span></button>
+            <button class="button button-primary" id="new-round" type="button">JOGAR</button>
             <button class="button button-soft" id="refill" type="button" hidden>Receber créditos grátis</button>
           </div>
+          </section>
         </section>
 
         <footer class="footnote">
