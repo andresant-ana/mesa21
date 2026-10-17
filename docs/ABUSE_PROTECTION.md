@@ -19,6 +19,20 @@ O Worker consulta os bindings de **Rate Limiting** antes de efetuar chamadas a D
 - Em desenvolvimento, controles ausentes são tolerados apenas para testes unitários locais. `wrangler.jsonc` declara bindings no ambiente padrão e no `production`.
 - As interfaces apresentam mensagens de erro amigáveis para 429/503, sem alegar sucesso ou retentar automaticamente operações que modificam saldo.
 
+## Proteção adicional de conexões ativas
+
+O Durable Object `RoomLobby` também estabelece limites de conexão **simultânea**, independentemente das quotas de frequência:
+
+- No máximo **2 WebSockets por sessão visitante em uma mesma sala**.
+- No máximo **40 WebSockets por sala** (incluindo espectadores).
+- No máximo **256 WebSockets simultâneos** no DO global (limite conservador para o MVP gratuito).
+- Solicitações acima dos limites devolvem HTTP 429 `SOCKET_CAPACITY` sem criar WebSocketPair.
+- Ao sair da sala, as conexões dessa sessão são fechadas com código 1008. Snapshots posteriores ignoram/revogam qualquer socket cuja sessão já não tenha vínculo com a sala, evitando vazamento do estado de uma mesa privada após a saída.
+- A contagem utiliza `getWebSockets()`, preservando os controles durante hibernação do Durable Object, sem contador volátil.
+- Usuário pode continuar acompanhando a mesa por requisições HTTP se não for possível manter WebSocket; a UI informa o estado da conexão.
+
+Essas quotas são intencionais para grupos pequenos e não equivalem a rate limiting global nem garantem ausência de sobrecarga.
+
 ## Limites e riscos importantes
 
 A Rate Limiting API da Cloudflare é **aproximada e local a cada ponto de presença**: não fornece quota global exata, nem protege contra ataques distribuídos por vários IPs ou pontos de presença. Pessoas que compartilham um mesmo IP (casas, escolas, CGNAT) podem atingir o mesmo limite — acompanhar false positives. Os limites devem ser ajustados com métricas reais.
