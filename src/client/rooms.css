@@ -184,7 +184,7 @@ body:has(.rooms-main) .footnote { flex: 0 0 auto; padding-block: 8px; }
   .mesa-table .deck-stack { top: 118px; right: 6%; }
 }
 @media (max-width: 590px) {
-  body:has(.rooms-main) .rooms-main { overflow-y: auto; }
+  body:has(.rooms-main) .rooms-main { overflow: hidden; }
   body:has(.rooms-main) #room-directory { flex: 1; overflow: hidden; }
   body:has(.rooms-main) .directory-layout { height: 100%; display: flex; flex-direction: column; }
   body:has(.rooms-main) .directory-main { min-height: 160px; flex: 1; }
