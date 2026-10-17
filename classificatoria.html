@@ -14,23 +14,19 @@
           <span>MESA</span><span class="brand-mark">/21</span>
         </a>
         <nav class="room-nav" aria-label="Navegação principal"><a class="room-nav-link" href="/">Salas</a><a class="room-nav-link" href="/solo.html">Jogar solo</a><a class="room-nav-link" href="/ranking.html">Ranking</a><a class="room-nav-link" href="/como-jogar.html">Como jogar</a><a class="room-nav-link" href="/conta.html" data-nav-account>Entrar / Criar conta</a></nav>
-        <div class="credit-box" aria-live="polite">
-          <span class="credit-label">Créditos da conta</span>
-          <strong id="credit-balance">—</strong>
-        </div>
-      </header>
+              </header>
 
       <main>
         <section class="intro" aria-labelledby="page-title">
           <div>
             <p class="eyebrow">UMA PARTIDA QUE CONTA</p>
             <h1 id="page-title">Suas cartas. Seu lugar no ranking.</h1>
-            <p class="intro-copy">Jogue contra a Clarice e acompanhe seu lucro fictício. Você precisa estar conectado à sua conta.</p>
+            <p class="intro-copy">Jogue contra o dealer e acompanhe seu lucro fictício. Você precisa estar conectado à sua conta.</p>
           </div>
           <p class="rules-note"><span aria-hidden="true">✦</span> Dealer para no 17</p>
         </section>
 
-        <section class="table" aria-label="Mesa de blackjack">
+        <section class="table mesa-table solo-table ranked-table" aria-label="Mesa classificatória de blackjack">
           <div class="dealer-row">
             <div class="clarice-avatar" aria-hidden="true">
               <svg viewBox="0 0 64 64">
@@ -45,8 +41,8 @@
               </svg>
             </div>
             <div class="dealer-copy">
-              <span class="eyebrow light">SUA DEALER</span>
-              <strong>Clarice</strong>
+              <span class="eyebrow light">DEALER</span>
+              <strong>dealer</strong>
             </div>
             <div class="dealer-total" id="dealer-total" aria-live="polite"></div>
           </div>
@@ -69,9 +65,9 @@
 
         <section class="controls" aria-label="Ações da partida">
           <div class="bet-control" id="bet-controls">
-            <label for="bet">Aposta classificatória</label>
-            <div class="bet-select-wrap">
-              <select id="bet" name="bet" aria-label="Valor da aposta em créditos casuais">
+            <label>Aposta classificatória</label>
+            <div class="chip-tray" role="group" aria-label="Selecione o valor da ficha"><button class="chip-button chip-coral" type="button" data-bet="10" aria-label="Selecionar ficha de 10 créditos" aria-pressed="false">10</button><button class="chip-button chip-cream" type="button" data-bet="20" aria-label="Selecionar ficha de 20 créditos" aria-pressed="false">20</button><button class="chip-button chip-yellow" type="button" data-bet="50" aria-label="Selecionar ficha de 50 créditos" aria-pressed="true">50</button><button class="chip-button chip-green" type="button" data-bet="100" aria-label="Selecionar ficha de 100 créditos" aria-pressed="false">100</button></div><input id="bet" name="bet" type="hidden" value="50"><div class="bet-select-wrap" hidden>
+              <select id="bet-legacy" name="bet-legacy" aria-label="Valor da aposta em créditos casuais">
                 <option value="10">10 créditos</option>
                 <option value="20">20 créditos</option>
                 <option value="50" selected>50 créditos</option>
@@ -85,7 +81,7 @@
             <button class="button button-warm" id="stand" type="button" disabled>Parar</button>
             <button class="button button-outline" id="double" type="button" disabled>Dobrar</button>
             <button class="button button-outline" id="split" type="button" disabled hidden>Dividir mãos</button>
-            <button class="button button-primary" id="new-round" type="button">Nova partida <span aria-hidden="true">→</span></button>
+            <button class="button button-primary" id="new-round" type="button">JOGAR</button>
             <button class="button button-soft" id="refill" type="button" hidden>Receber créditos grátis</button>
           </div>
         </section>
