@@ -44,20 +44,41 @@ O verificador `verifyShoeDrawTrace` exige que `draws.length === consumed`, que c
 
 **Importante:** os destinatários e eventos ainda são relatos produzidos pelo próprio servidor; falta vincular cada snapshot visto pelo usuário a um recibo imutável, confrontar todas as ações/regras num replay reproduzível e introduzir semente dos jogadores. Uma prova de saques íntegra NÃO demonstra, sozinha, que o jogador viu exatamente essas cartas.
 
+## Replay determinístico das rodadas (incremento v1)
+
+Quando uma rodada multiplayer termina, o motor preserva internamente a situação inicial dos créditos, **cada aposta e ação efetivamente aceita** (`bet`, `deal`, `hit`, `stand`, `double`, `split`, incluindo eventos automáticos por timeout), o resultado final das mãos e o saldo final dos participantes. Esses dados permanecem privados enquanto o sapato está em uso.
+
+Quando o sapato é aposentado, a prova inclui o campo `rounds` (recibos das rodadas encerradas). O verificador `verifyShoeRoundReplay` recria cada rodada usando a sequência original comprometida, reexecuta apostas e ações sob as regras do motor e compara:
+- legitimidade dos turnos e ações;
+- mãos, dealer S17, naturais, splits, doubles e desfechos;
+- todas as cartas efetivamente consumidas na posição comprometida;
+- crédito final de cada jogador, incluindo participantes que deixaram a sala depois do término;
+- eventos aceitos, respeitando ordem e estado.
+
+Uma alteração em apostas, ações, resultados, créditos ou dealer invalida o replay. O painel de auditoria na interface verifica três etapas: compromisso SHA-256, histórico de distribuição e replay dos resultados.
+
+**Correção operacional:** uma fase de apostas cancelada por timeout sem nenhuma aposta não descarta mais a contagem de cartas das rodadas anteriores ao aposentar o sapato.
+
+**Limites:** a verificação é retrospectiva, condicionada à disponibilidade da prova aposentada (atualmente até três sapatos por sala). Nenhuma parte do protocolo impede um operador de escolher unilateralmente a ordem inicial do sapato; tampouco vincula de forma imutável cada snapshot visto pelo jogador. Não afirmar fairness completa.
+
 ## Limites explícitos (bloqueio de lançamento de fairness)
 
 A prova original atesta que a ordem revelada corresponde ao compromisso anterior. O novo histórico permite conferir que **os saques registrados pelo servidor** seguem essa ordem e não possuem lacunas. **Não atesta por si só aleatoriedade imparcial**, nem vincula criptograficamente todos os snapshots que os jogadores viram, nem oferece escolha de semente pelo jogador. O operador pode preparar baralhos antes do compromisso. O protocolo ainda não cobre solo ou classificatórias.
 
 Para oferecer fairness verificável de ponta a ponta, será necessário:
 1. Definir protocolo de semente do servidor pré-comprometida mais contribuição de jogador(es), que não possam ser escolhidas unilateralmente após o compromisso; usar shuffle determinístico verificável sem viés (rejection sampling).
-2. Ampliar o histórico de saques já instrumentado com eventos de ações, turnos, apostas e pagamentos idempotentes por rodada, e implementar replay completo do motor contra snapshots assinados/comprometidos.
-3. Disponibilizar histórico assinado/auditável das rodadas e ferramenta independente de replay/verificação (sem revelar cartas futuras).
+2. Ancorar criptograficamente os recibos e snapshots vistos pelos jogadores durante cada rodada, com retenção consultável, e integrar ledger classificatório idempotente; o replay determinístico de eventos do multiplayer casual já está implementado.
+3. Publicar recibos verificáveis assinados ou ancorados em cadeia, retidos além do TTL das salas, e fornecer um verificador independente do código de produção.
 4. Estender o protocolo a solo e classificatórias, suportar recuperação e rotação consistente após falhas e submeter à revisão adversarial.
 5. Definir política de disponibilidade de provas após fechamento de salas, pois os registros atuais são efêmeros (TTL) e armazenam somente os três últimos sapatos aposentados.
 
 **Não anunciar o site como provably fair neste estágio.** A transparência parcial não é certificação externa.
 
 ## Testes
+
+- Replay de dois rounds reais sobre o mesmo sapato reproduz dealer e saldos; alteração de aposta, saldo final, cartas ou sequência de eventos invalida prova.
+- Expiração de fase vazia preserva o consumo e o replay de partidas anteriores.
+- A aposentadoria após múltiplas rodadas é exercitada por API real de sala, sem manipular artificialmente os dados do baralho.
 
 - Saques efetivos da engine em duas rodadas seguidas correspondem a índices sequenciais do sapato original; qualquer alteração de carta, índice, destinatário ou omissão é rejeitada.
 - Retenção evita arquivamento duplo da mesma distribuição.
