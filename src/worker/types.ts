@@ -22,6 +22,7 @@ export interface DurableObjectState {
 export interface Env {
   GAME_SESSIONS: DurableObjectNamespace;
   ROOM_LOBBY: DurableObjectNamespace;
+  ACCOUNT_DIRECTORY: DurableObjectNamespace;
   ASSETS: { fetch(request: Request): Promise<Response> };
   ENVIRONMENT: string;
   ALLOWED_ORIGINS: string;
