@@ -79,6 +79,30 @@ async function upgrade(code, cookie) {
 
 try {
   await waitForWorker();
+  // Persistent account lifecycle against a REAL local Durable Object.
+  const username = "test_" + randomBytes(5).toString("hex");
+  const password = "Long private demo password 2026!";
+  const changedPassword = "Another safe demo password 2026!";
+  const registered = await request("/auth/register", "", { username, password });
+  assert.equal(registered.status, 201, JSON.stringify(registered.payload));
+  assert.equal(registered.payload.authToken, undefined);
+  assert.ok(registered.payload.recoveryCode);
+  const authCookie = (registered.headers.get("set-cookie") ?? "").match(/mesa21_auth=[A-Za-z0-9_-]+/)?.[0];
+  assert.ok(authCookie);
+  const loggedIn = await request("/auth/me", authCookie);
+  assert.equal(loggedIn.status, 200);
+  assert.equal(loggedIn.payload.user.username, username);
+  const recovery = await request("/auth/recover", authCookie, {
+    username, recoveryCode: registered.payload.recoveryCode, newPassword: changedPassword
+  });
+  assert.equal(recovery.status, 200);
+  const rotatedCookie = (recovery.headers.get("set-cookie") ?? "").match(/mesa21_auth=[A-Za-z0-9_-]+/)?.[0];
+  assert.ok(rotatedCookie);
+  assert.equal((await request("/auth/me", authCookie)).status, 401);
+  assert.equal((await request("/auth/me", rotatedCookie)).status, 200);
+  assert.equal((await request("/auth/logout", rotatedCookie, {})).status, 200);
+  assert.equal((await request("/auth/me", rotatedCookie)).status, 401);
+
   const host = await cookieForGuest();
   const guest = await cookieForGuest();
   assert.notEqual(host, guest);
@@ -132,7 +156,7 @@ try {
   assert.equal(privateRoom.status, 201);
   const publicListing = (await request("/rooms", guest)).payload.rooms;
   assert.ok(!publicListing.some((entry) => entry.code === privateRoom.payload.room.code));
-  console.log("MESA/21 runtime smoke: HTTP, DO, WebSocket upgrade, multiplayer, privacy PASS");
+  console.log("MESA/21 runtime smoke: accounts/recovery, HTTP, DO, WebSocket upgrade, multiplayer, privacy PASS");
 } catch (error) {
   console.error(error);
   console.error("Wrangler tail:\n" + logTail);
