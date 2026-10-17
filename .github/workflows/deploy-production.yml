@@ -48,7 +48,7 @@ jobs:
         with:
           node-version: 22
       - name: Instalar dependências
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
       - name: TypeScript
         run: npm run check
       - name: Testes de domínio e API
@@ -83,7 +83,7 @@ jobs:
         with:
           node-version: 22
       - name: Instalar dependências
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
       - name: Construir assets
         run: npm run build
       - name: Conferir credenciais de ambiente sem expô-las

@@ -51,7 +51,7 @@ O workflow manual é **bloqueado por padrão**. O job de verificação só inici
 3. **Concorrência e identidade:** contas usam um único `AccountDirectory`, e salas casuais usam armazenamento distinto; multiplayer classificatório com pagamentos idempotentes **não está pronto**.
 4. **Privacidade e custos:** política de dados/retenção, testes de abuso, testes de carga e limites do plano gratuito precisam ser validados. Verificar obrigações legais de jogo de simulação sem dinheiro real.
 5. **Qualidade:** testes WCAG, aparelhos físicos, navegador Safari/Firefox e auditoria visual completa contra o Stitch estão pendentes.
-6. **Reprodutibilidade:** o projeto ainda usa `npm install`; antes de publicar convém adotar lockfile e `npm ci` para builds reproduzíveis.
+6. **Reprodutibilidade:** `package-lock.json` registra as dependências e os workflows instalam com `npm ci`; atualizações de dependências precisam revisar e versionar o lockfile junto com `package.json`.
 
 ## Depois da publicação (somente quando autorizada)
 

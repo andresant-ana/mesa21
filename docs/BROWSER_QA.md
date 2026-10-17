@@ -7,6 +7,7 @@ O CI executa, além dos testes de domínio e do smoke Worker/DO, o script `npm r
 - Confirma que nenhum desses documentos ultrapassa a largura útil do viewport.
 - Testa cadastro e apresentação do código de recuperação em formulário verdadeiro.
 - Usa cookie da conta no navegador para verificar resgate diário, saldo persistido, mesa solo classificatória e ranking gerado a partir da partida.
+- Abre duas sessões de navegador independentes para entrar na mesma mesa, confirma a atualização dos participantes por WebSocket e verifica que ambas recebem a mesma fase de apostas e compromisso do sapato.
 - Salva capturas em `artifacts/ui`; o código de recuperação é **mascarado** na imagem de teste.
 - Os artefatos ficam disponíveis no run do GitHub Actions (não são capturados códigos de recuperação em claro).
 
@@ -20,4 +21,5 @@ O CI executa, além dos testes de domínio e do smoke Worker/DO, o script `npm r
 - As screenshots são evidência de renderização, **não um atestado de fidelidade pixel-a-pixel** ao Stitch.
 - Acesso por teclado, leitores de tela, contraste WCAG AA e desempenho em celulares de entrada exigem auditoria específica adicional.
 - A CI usa Chromium; Safari/Firefox e dispositivos físicos ainda não foram verificados.
+- O fluxo multiplayer local verifica duas sessões independentes no Worker/DO local; não substitui validação em Durable Objects publicados nem teste de rede móvel/reconexão após suspensão do navegador.
 - Páginas e testes existem, mas o site **não foi publicado**.

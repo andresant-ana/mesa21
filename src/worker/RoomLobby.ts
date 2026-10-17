@@ -75,15 +75,18 @@ function publicRoom(room: Room) {
 
 function roomDetails(room: Room, session: string) {
   const self = [...room.members, ...room.spectators].find((m) => m.session === session);
+  const joined = Boolean(self);
   return {
     ...publicRoom(room),
     role: !self ? "visitor" : room.members.includes(self) ? "player" : "spectator",
     isHost: room.host === session,
-    members: room.members.map(({ id, name }) => ({ id, name, isHost: room.members.find((m) => m.id === id)?.session === room.host })),
-    spectatorsList: room.spectators.map(({ id, name }) => ({ id, name })),
+    // Public room codes are discoverable through the lobby. A visitor may see
+    // the safe room summary, but must join before receiving participant data.
+    members: joined ? room.members.map(({ id, name }) => ({ id, name, isHost: room.members.find((m) => m.id === id)?.session === room.host })) : [],
+    spectatorsList: joined ? room.spectators.map(({ id, name }) => ({ id, name })) : [],
     mySeatId: self?.id ?? null,
     myCredits: self && room.members.includes(self) ? self.credits : null,
-    round: room.round ? publicTable(room.round) : null,
+    round: joined && room.round ? publicTable(room.round) : null,
     shoeAudit: publicShoeCommitment(room.audit),
     gameAvailable: true
   };
@@ -191,7 +194,10 @@ export class RoomLobby {
 
     const action = route[2];
     if (!action && request.method === "GET") return result({ room: roomDetails(room, session) });
-    if (action === "audit" && request.method === "GET") return result({ current: publicShoeCommitment(room.audit), revealed: room.audit?.revealed ?? [] });
+    if (action === "audit" && request.method === "GET") {
+      if (!hasMember(room, session)) return result({ error: "NOT_IN_ROOM" }, 403);
+      return result({ current: publicShoeCommitment(room.audit), revealed: room.audit?.revealed ?? [] });
+    }
 
     if (action === "stream" && request.method === "GET") {
       if (!hasMember(room, session)) return result({ error: "NOT_IN_ROOM" }, 403);

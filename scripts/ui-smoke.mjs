@@ -97,7 +97,29 @@ try {
   await page.locator("#room-name").fill("Mesa de Auditoria");
   await page.locator('#create-room button[type="submit"]').click();
   await page.locator("#game-start").waitFor({ state: "visible", timeout: 15_000 });
-  await page.locator("#game-start").click();
+  const roomCode = new URL(page.url()).searchParams.get("sala");
+  assert.match(roomCode ?? "", /^[A-F0-9]{12}$/);
+
+  // Two separate browser contexts have independent cookies and visitor sessions.
+  const friendContext = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  try {
+    const friendPage = await friendContext.newPage();
+    await friendPage.goto(origin + "/salas.html?sala=" + roomCode, { waitUntil: "domcontentloaded" });
+    await friendPage.locator("#join-area").waitFor({ state: "visible" });
+    await friendPage.locator("#join-name").fill("QA Friend");
+    await friendPage.locator("#join-room").click();
+    await friendPage.locator("#room-members").getByText("QA Friend").waitFor({ state: "visible" });
+    await page.locator("#room-members").getByText("QA Friend").waitFor({ state: "visible" });
+    await page.locator("#game-start").click();
+    await page.locator("#game-betting").waitFor({ state: "visible" });
+    await friendPage.locator("#game-betting").waitFor({ state: "visible" });
+    await friendPage.waitForFunction(() => document.querySelector("#connection-state")?.textContent?.includes("Amigos conectados em tempo real"));
+    assert.equal(await friendPage.locator("#shoe-commitment").textContent(), await page.locator("#shoe-commitment").textContent());
+    console.log("MESA/21 multiplayer QA PASS: two independent sessions joined the same room and received the live betting state");
+  } finally {
+    await friendContext.close();
+  }
+
   await page.waitForFunction(() => /^[0-9a-f]{64}$/.test(document.querySelector("#shoe-commitment")?.textContent ?? ""),
     undefined, { timeout: 15_000 });
   await page.locator(".room-fairness summary").click();

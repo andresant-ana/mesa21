@@ -52,6 +52,25 @@ test("sala privada acessível apenas com código e ausente do lobby", async () =
   assert.equal((await joined.json() as { room: { players: number } }).room.players, 2);
 });
 
+test("visitante não membro não recebe nomes, cartas ou provas de uma sala pública", async () => {
+  const { request } = setup();
+  const host = session("h"), guest = session("g"), visitor = session("o");
+  const created = await request(host, "/rooms", create());
+  const { room } = await created.json() as { room: { code: string } };
+  await request(guest, "/rooms/" + room.code + "/join", { displayName: "amiga" });
+  await request(host, "/rooms/" + room.code + "/start", {});
+  const outsider = await request(visitor, "/rooms/" + room.code);
+  assert.equal(outsider.status, 200);
+  const { room: view } = await outsider.json() as { room: {
+    role: string; members: unknown[]; spectatorsList: unknown[]; round: unknown;
+  } };
+  assert.equal(view.role, "visitor");
+  assert.deepEqual(view.members, []);
+  assert.deepEqual(view.spectatorsList, []);
+  assert.equal(view.round, null);
+  assert.equal((await request(visitor, "/rooms/" + room.code + "/audit")).status, 403);
+});
+
 test("cinco jogadores e espectadores sem extrapolar lotação", async () => {
   const { request } = setup();
   const first = await request(session("a"), "/rooms", create());
