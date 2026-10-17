@@ -80,8 +80,11 @@
       <section id="game-area" class="room-game" aria-label="Partida de blackjack multiplayer" hidden>
         <div class="section-heading"><h2>Partida em grupo</h2><span id="game-credits" class="mode-pill"></span></div>
         <p id="game-status" class="intro-copy" role="status" aria-live="polite"></p>
-        <div class="room-game-table">
+        <div class="room-game-table mesa-table social-table">
+          <div class="deck-stack" aria-label="Baralho de Clarice"><span></span><span></span><span></span></div>
+          <div class="table-status"><span>Partida entre amigos</span><span class="table-stats">Turno <b id="turn-timer" role="timer" aria-live="off"></b></span></div>
           <div class="room-game-dealer">
+            <div class="clarice-avatar" aria-hidden="true"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="31" fill="#f9dfb1"/><path d="M12 28c0-14 8-22 20-22s20 8 20 22v13c0 10-9 18-20 18S12 51 12 41V28Z" fill="#49372f"/><path d="M17 30c0-10 6-16 15-16s15 6 15 16v10c0 9-6 14-15 14s-15-5-15-14V30Z" fill="#f3c7a4"/><path d="M17 30c1-9 6-14 15-14s14 5 15 14c-5-1-9-4-12-8-4 5-10 8-18 8Z" fill="#49372f"/><circle cx="26" cy="34" r="1.7" fill="#342823"/><circle cx="38" cy="34" r="1.7" fill="#342823"/><path d="M28 43c2 2 6 2 8 0" fill="none" stroke="#a85d57" stroke-width="1.8" stroke-linecap="round"/><path d="M20 55c2-7 8-10 12-10s10 3 12 10" fill="#1d3f36"/></svg></div>
             <span class="eyebrow light">CLARICE · DEALER</span>
             <div id="social-dealer-cards" class="room-game-cards"></div>
           </div>
@@ -90,6 +93,7 @@
         <div class="room-game-actions">
           <button id="game-start" class="button button-primary" type="button" hidden>Começar rodada</button>
           <div id="game-betting" hidden>
+            <div class="chip-tray social-chip-tray" id="social-chip-tray" role="group" aria-label="Selecione suas fichas"><button class="chip-button chip-coral" type="button" data-wager="10" aria-label="Apostar 10 creditos">10</button><button class="chip-button chip-cream" type="button" data-wager="20" aria-label="Apostar 20 creditos">20</button><button class="chip-button chip-yellow" type="button" data-wager="50" aria-label="Apostar 50 creditos" aria-pressed="true">50</button><button class="chip-button chip-green" type="button" data-wager="100" aria-label="Apostar 100 creditos">100</button></div>
             <label for="game-wager">Sua aposta</label>
             <select id="game-wager">
               <option value="10">10 créditos</option><option value="20">20 créditos</option>

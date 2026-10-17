@@ -1,4 +1,5 @@
 import "./styles.css";
+import "./rooms.css";
 import "./navigation.ts";
 
 type Suit = "clubs" | "diamonds" | "hearts" | "spades";
@@ -43,6 +44,8 @@ const refillButton = required<HTMLButtonElement>("refill");
 let currentCredits = 0;
 let activeGame: PublicGame | null = null;
 let busy = false;
+let firstSnapshot = true;
+let renderedGame: PublicGame | null = null;
 
 function required<T extends HTMLElement>(id: string): T {
   const element = document.getElementById(id);
@@ -82,6 +85,18 @@ function renderSession(session: Session): void {
 }
 
 function renderGame(game: PublicGame | null): void {
+  const table = document.querySelector(".solo-table");
+  table?.classList.remove("result-win", "result-loss", "result-push");
+  if (game?.phase === "finished") {
+    table?.classList.add(game.result === "win" || game.result === "blackjack" ? "result-win" : game.result === "push" ? "result-push" : "result-loss");
+  }
+  const tableBet = document.getElementById("table-bet");
+  const seatWager = document.getElementById("seat-wager");
+  document.querySelectorAll<HTMLButtonElement>(".chip-button").forEach((chip) => {
+    chip.setAttribute("aria-pressed", String(chip.dataset.bet === betElement.value));
+  });
+  if (tableBet) tableBet.textContent = game ? String(game.bet) + " fichas" : betElement.value + " fichas";
+  if (seatWager) seatWager.textContent = game ? "Aposta: " + game.bet + " fichas" : "Aposta sugerida: " + betElement.value;
   const canRefill = !isRanked && currentCredits < 10 && (!game || game.phase === "finished");
   refillButton.hidden = !canRefill;
   refillButton.disabled = busy || !canRefill;
@@ -98,20 +113,52 @@ function renderGame(game: PublicGame | null): void {
     setActions(false, false);
     betElement.disabled = busy;
     newRoundButton.disabled = busy || currentCredits < 10;
+    firstSnapshot = false;
+    renderedGame = null;
     return;
   }
 
-  dealerCardsElement.replaceChildren(...game.dealerCards.map((card) => card ? playingCard(card) : cardBack()));
+  const previousDealerCount = dealerCardsElement.querySelectorAll(".playing-card").length;
+  const dealerCards = game.dealerCards.map((card) => card ? playingCard(card) : cardBack());
+  if (!firstSnapshot && dealerCards.length > previousDealerCount) {
+    dealerCards.slice(previousDealerCount).forEach((card, index) => {
+      card.classList.add("card-arrive");
+      card.style.setProperty("--deal-order", String(index));
+    });
+  }
+  dealerCardsElement.replaceChildren(...dealerCards);
   if (game.secondaryHand) {
+    const priorPrimary = renderedGame?.playerCards.length ?? 0;
+    const priorSecondary = renderedGame?.secondaryHand?.cards.length ?? 0;
     playerCardsElement.replaceChildren(
       splitHandView(1, game.playerCards, game.playerTotal, game.bet, game.result, game.activeHand === 0 && game.phase === "player"),
       splitHandView(2, game.secondaryHand.cards, game.secondaryHand.total, game.secondaryHand.bet, game.secondaryHand.result, game.activeHand === 1 && game.phase === "player")
     );
+    const renderedHands = playerCardsElement.querySelectorAll(".split-hand");
+    [[game.playerCards.length, priorPrimary], [game.secondaryHand.cards.length, priorSecondary]].forEach(([size, prior], index) => {
+      if (!firstSnapshot && size > prior) {
+        const cards = renderedHands[index]?.querySelectorAll(".playing-card");
+        Array.from(cards ?? []).slice(prior).forEach((card, cardIndex) => {
+          card.classList.add("card-arrive");
+          (card as HTMLElement).style.setProperty("--deal-order", String(cardIndex));
+        });
+      }
+    });
     playerTotalElement.hidden = true;
   } else {
-    playerCardsElement.replaceChildren(...game.playerCards.map(playingCard));
+    const previousPlayerCount = playerCardsElement.querySelectorAll(".playing-card").length;
+    const playerCards = game.playerCards.map(playingCard);
+    if (!firstSnapshot && playerCards.length > previousPlayerCount) {
+      playerCards.slice(previousPlayerCount).forEach((card, index) => {
+        card.classList.add("card-arrive");
+        card.style.setProperty("--deal-order", String(index));
+      });
+    }
+    playerCardsElement.replaceChildren(...playerCards);
     playerTotalElement.hidden = false;
   }
+  firstSnapshot = false;
+  renderedGame = game;
   dealerTotalElement.textContent = game.dealerTotal === null ? "" : String(game.dealerTotal);
   playerTotalElement.textContent = String(game.playerTotal);
   betElement.disabled = busy || game.phase === "player";
@@ -223,12 +270,12 @@ function hint(text: string): HTMLElement {
   return element;
 }
 
-function suitSymbol(suit: Suit): string {
-  return { clubs: "♣", diamonds: "♦", hearts: "♥", spades: "♠" }[suit];
-}
+function suitSymbol(suit: Suit): string { return { clubs: "\u2663", diamonds: "\u2666", hearts: "\u2665", spades: "\u2660" }[suit]; }
+
 function suitName(suit: Suit): string {
   return { clubs: "paus", diamonds: "ouros", hearts: "copas", spades: "espadas" }[suit];
 }
+
 function formatCredits(value: number): string {
   return new Intl.NumberFormat("pt-BR").format(value);
 }
@@ -280,6 +327,14 @@ standButton.addEventListener("click", () => void perform(actionPath, { action: "
 doubleButton.addEventListener("click", () => void perform(actionPath, { action: "double" }));
 splitButton.addEventListener("click", () => void perform(actionPath, { action: "split" }));
 newRoundButton.addEventListener("click", () => void perform(startPath, { bet: Number(betElement.value) }));
+document.querySelectorAll<HTMLButtonElement>(".chip-button").forEach((chip) => {
+  chip.addEventListener("click", () => {
+    if (betElement.disabled) return;
+    betElement.value = chip.dataset.bet ?? betElement.value;
+    renderGame(activeGame);
+  });
+});
+betElement.addEventListener("change", () => renderGame(activeGame));
 refillButton.addEventListener("click", () => { if (!isRanked) void perform("/api/game/refill", {}); });
 window.addEventListener("keydown", (event) => {
   if (event.altKey || event.ctrlKey || event.metaKey || event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement) return;
