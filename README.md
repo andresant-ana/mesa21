@@ -1,6 +1,6 @@
 # MESA/21
 
-Blackjack solo e multiplayer casual, gratuito e leve, com créditos exclusivamente fictícios e identidade visual Playful Minimalism. Partida, cartas, resultado e saldo casual são autoritativos no servidor. Não há dinheiro real nem créditos classificatórios.
+Blackjack solo e multiplayer casual, gratuito e leve, com créditos exclusivamente fictícios e identidade visual Playful Minimalism. Partida, cartas, resultado e saldo casual são autoritativos no servidor. Não há dinheiro real. A classificação solo usa apenas créditos fictícios persistentes da conta.
 
 ## M1 — Fundação e jogo solo
 
@@ -17,11 +17,17 @@ Blackjack solo e multiplayer casual, gratuito e leve, com créditos exclusivamen
 - `/conta.html` permite criar conta, entrar, recuperar com código de uso único, consultar perfil e sair.
 - Senha derivada com PBKDF2-SHA256, salt aleatório, sessões protegidas por cookies HttpOnly, token revogável com hash no servidor e limitação básica de tentativas por username.
 - Diretório de contas persistido em Durable Object SQLite (sem D1 provisionado).
-- **Atenção:** contas ainda não estão vinculadas às fichas e às mesas: jogo casual continua com identidade de visitante. Detalhes em `docs/ACCOUNTS.md`.
+- As contas estão vinculadas à carteira e ao modo solo classificatório; as salas casuais continuam com créditos temporários isolados. Detalhes em `docs/ACCOUNTS.md` e `docs/WALLET.md`.
+
+## M6 — Créditos e ranking
+
+- `/carteira.html`: saldo de créditos fictícios da conta, bônus diário de 500 e movimentações recentes.
+- `/classificatoria.html`: blackjack solo classificatório, apostas e resultado controlados pelo servidor; alterações de saldo registradas no ledger.
+- `/ranking.html`: classificações semanal, mensal e histórica pelo lucro líquido real de partidas concluídas, sem bônus. Sem usuários fictícios gerados para preencher a tela.
 
 ### Ainda não implementado
 
-Ledger e créditos por conta, ranking global, classificação persistente, chat, protocolo de fairness verificável, deploy público e proteção operacional contra abuso automatizado. O saldo de visitante depende do cookie; limpar cookies perde a sessão, e criar várias sessões não é impedido.
+Classificatória multiplayer com ledger entre objetos, perfil público completo, chat, protocolo de fairness verificável, deploy público e proteção operacional contra abuso automatizado. O saldo de visitante depende do cookie; limpar cookies perde a sessão, e criar várias sessões não é impedido.
 
 ## Rodar localmente
 
@@ -45,5 +51,6 @@ Wrangler mantém os Durable Objects no ambiente local.
 - docs/IMPLEMENTATION_PLAN.md: marcos e critérios.
 - docs/SOCIAL_ROOMS.md: contrato das salas de espera reais e limitações de lançamento.
 - docs/ACCOUNTS.md: contrato de autenticação, recuperação, segurança e limites.
+- docs/WALLET.md: economia fictícia, ledger, ranking e limites.
 
 O repositório apresenta exclusivamente MESA/21. Leia a arquitetura, a auditoria Stitch e o plano para detalhes.
