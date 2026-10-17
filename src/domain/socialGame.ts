@@ -4,6 +4,7 @@ import {
 } from "./blackjack.ts";
 
 export type TablePhase = "betting" | "playing" | "finished";
+export type TableDraw = { offset: number; card: Card; recipient: string; hand: number };
 export const BETTING_TIMEOUT_MS = 120_000;
 export const TURN_TIMEOUT_MS = 45_000;
 export type TableWallet = { id: string; credits: number };
@@ -16,6 +17,8 @@ export type TableRound = {
   seats: TableSeat[];
   turn: number;
   deadlineAt: number | null;
+  initialShoeLength: number;
+  draws: TableDraw[];
 };
 
 export class TableError extends Error {
@@ -37,7 +40,9 @@ export function openBetting(members: readonly TableWallet[], shoe: Card[]): Tabl
     phase: "betting", shoe: [...shoe], dealerCards: [],
     seats: members.map(({ id }) => ({ id, wager: 0, hands: [], activeHand: 0 })),
     turn: -1,
-    deadlineAt: Date.now() + BETTING_TIMEOUT_MS
+    deadlineAt: Date.now() + BETTING_TIMEOUT_MS,
+    initialShoeLength: shoe.length,
+    draws: []
   };
 }
 
@@ -60,10 +65,10 @@ export function dealTable(round: TableRound, wallets: TableWallet[]): void {
   if (!seats.length) throw new TableError("NO_BETS");
   if (round.shoe.length < (seats.length * 2) + 2) throw new TableError("SHOE_EXHAUSTED");
   round.seats = seats;
-  for (const seat of seats) seat.hands = [{ cards: [draw(round)], wager: seat.wager, done: false, result: null }];
-  round.dealerCards = [draw(round)];
-  for (const seat of seats) seat.hands[0]!.cards.push(draw(round));
-  round.dealerCards.push(draw(round));
+  for (const seat of seats) seat.hands = [{ cards: [draw(round, seat.id, 0)], wager: seat.wager, done: false, result: null }];
+  round.dealerCards = [draw(round, "dealer", 0)];
+  for (const seat of seats) seat.hands[0]!.cards.push(draw(round, seat.id, 0));
+  round.dealerCards.push(draw(round, "dealer", 0));
   round.phase = "playing";
   round.turn = 0;
   round.deadlineAt = Date.now() + TURN_TIMEOUT_MS;
@@ -104,8 +109,8 @@ export function playTableAction(round: TableRound, wallets: TableWallet[], seatI
     wallet.credits -= hand.wager;
     const second = hand.cards.pop()!;
     const aceSplit = hand.cards[0]!.rank === "A";
-    hand.cards.push(draw(round));
-    seat.hands.push({ cards: [second, draw(round)], wager: hand.wager, done: aceSplit, result: null });
+    hand.cards.push(draw(round, seat.id, 0));
+    seat.hands.push({ cards: [second, draw(round, seat.id, 1)], wager: hand.wager, done: aceSplit, result: null });
     if (aceSplit) {
       hand.done = true;
       advanceTableTurn(round, wallets);
@@ -118,7 +123,7 @@ export function playTableAction(round: TableRound, wallets: TableWallet[], seatI
 
   if (action === "hit") {
     if (!round.shoe.length) throw new TableError("SHOE_EXHAUSTED");
-    hand.cards.push(draw(round));
+    hand.cards.push(draw(round, seat.id, seat.activeHand));
     const total = scoreHand(hand.cards).total;
     if (total >= 21) {
       hand.done = true;
@@ -173,7 +178,7 @@ function settleTable(round: TableRound, wallets: TableWallet[]): void {
   if (unresolved) throw new TableError("WRONG_PHASE");
   const needDealer = round.seats.some((seat) =>
     seat.hands.some((hand) => !hand.result && scoreHand(hand.cards).total <= 21));
-  if (needDealer) while (scoreHand(round.dealerCards).total < 17) round.dealerCards.push(draw(round));
+  if (needDealer) while (scoreHand(round.dealerCards).total < 17) round.dealerCards.push(draw(round, "dealer", 0));
   const dealerTotal = scoreHand(round.dealerCards).total;
   for (const seat of round.seats) {
     const wallet = wallets.find((member) => member.id === seat.id);
@@ -199,9 +204,11 @@ function value(card: Card): number {
     card.rank === "10" || card.rank === "J" || card.rank === "Q" || card.rank === "K" ? 10 : Number(card.rank);
 }
 
-function draw(round: TableRound): Card {
+function draw(round: TableRound, recipient: string, hand: number): Card {
+  const offset = 312 - round.shoe.length;
   const card = round.shoe.shift();
   if (!card) throw new TableError("SHOE_EXHAUSTED");
+  round.draws.push({ offset, card: { ...card }, recipient, hand });
   return card;
 }
 
