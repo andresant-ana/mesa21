@@ -271,11 +271,11 @@ function hint(text: string): HTMLElement {
 }
 
 function suitSymbol(suit: Suit): string { return { clubs: "\u2663", diamonds: "\u2666", hearts: "\u2665", spades: "\u2660" }[suit]; }
-  return { clubs: "♣", diamonds: "♦", hearts: "♥", spades: "♠" }[suit];
-}
+
 function suitName(suit: Suit): string {
   return { clubs: "paus", diamonds: "ouros", hearts: "copas", spades: "espadas" }[suit];
 }
+
 function formatCredits(value: number): string {
   return new Intl.NumberFormat("pt-BR").format(value);
 }
