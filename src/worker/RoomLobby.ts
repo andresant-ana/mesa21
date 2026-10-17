@@ -18,6 +18,7 @@ type Room = {
   members: Member[];
   spectators: Member[];
   round: TableRound | null;
+  roundSequence?: number;
   audit?: ShoeAuditState | null;
   createdAt: number;
   touchedAt: number;
@@ -86,7 +87,7 @@ function roomDetails(room: Room, session: string) {
     spectatorsList: joined ? room.spectators.map(({ id, name }) => ({ id, name })) : [],
     mySeatId: self?.id ?? null,
     myCredits: self && room.members.includes(self) ? self.credits : null,
-    round: joined && room.round ? publicTable(room.round) : null,
+    round: joined && room.round ? { ...publicTable(room.round), roundId: room.roundSequence ?? 0 } : null,
     shoeAudit: publicShoeCommitment(room.audit),
     gameAvailable: true
   };
@@ -180,7 +181,7 @@ export class RoomLobby {
       const host = { id: randomCode(), session, name: displayName, joinedAt: now, credits: STARTING_CASUAL_CREDITS };
       const room: Room = {
         code, name, visibility: body.visibility as Visibility, mode: "casual",
-        host: session, members: [host], spectators: [], round: null, audit: null, createdAt: now, touchedAt: now
+        host: session, members: [host], spectators: [], round: null, roundSequence: 0, audit: null, createdAt: now, touchedAt: now
       };
       stored.rooms.push(room);
       await this.state.storage.put("rooms", stored);
@@ -278,6 +279,9 @@ export class RoomLobby {
         shoe = committed.shoe;
       }
       room.round = openBetting(room.members, shoe);
+      // Stable, monotonically increasing room-local identity for UI transitions.
+      // Not part of the deterministic shoe replay; legacy rooms default to zero.
+      room.roundSequence = (room.roundSequence ?? 0) + 1;
       room.touchedAt = now;
       await this.state.storage.put("rooms", stored);
       await this.scheduleAlarm(stored);
