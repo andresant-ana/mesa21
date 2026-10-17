@@ -27,6 +27,8 @@ const errors: Record<string, string> = {
   INVALID_CREDENTIALS: "Credenciais inválidas. Confira seus dados ou o código de recuperação.",
   USERNAME_TAKEN: "Esse nome de usuário já está em uso.",
   TOO_MANY_ATTEMPTS: "Muitas tentativas. Espere 15 minutos antes de tentar novamente.",
+  RATE_LIMITED: "Muitas solicitações em pouco tempo. Aguarde um minuto e tente novamente.",
+  RATE_LIMIT_UNAVAILABLE: "O serviço de segurança está temporariamente indisponível.",
   SIGNUP_LIMIT_REACHED: "Os cadastros estão temporariamente indisponíveis.",
   UNAUTHORIZED: "Entre com sua conta para continuar.",
   ORIGIN_NOT_ALLOWED: "Atualize a página e tente novamente.",

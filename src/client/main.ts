@@ -268,6 +268,8 @@ function friendlyError(code: string): string {
   if (code === "UNAUTHORIZED") return "Entre na sua conta para jogar partidas classificatórias.";
   if (code === "ROUND_ACTIVE") return "Termine a rodada atual antes de começar outra.";
   if (code === "REFILL_NOT_AVAILABLE") return "Os créditos de cortesia estarão disponíveis quando você ficar sem fichas casuais.";
+  if (code === "RATE_LIMITED") return "Muitas ações em pouco tempo. Aguarde um minuto e tente novamente.";
+  if (code === "RATE_LIMIT_UNAVAILABLE") return "As proteções da mesa estão indisponíveis. Tente mais tarde.";
   if (code === "ORIGIN_NOT_ALLOWED") return "A origem da solicitação não foi aceita.";
   return "A ação não foi concluída. Tente novamente.";
 }

@@ -19,7 +19,15 @@ export interface DurableObjectState {
   acceptWebSocket?(socket: WebSocket): void;
   getWebSockets?(): WebSocket[];
 }
+export interface AbuseBinding {
+  limit(input: { key: string }): Promise<{ success: boolean }>;
+}
 export interface Env {
+  ABUSE_API?: AbuseBinding;
+  ABUSE_AUTH?: AbuseBinding;
+  ABUSE_SIGNUP?: AbuseBinding;
+  ABUSE_ROOMS?: AbuseBinding;
+  ABUSE_SOCKETS?: AbuseBinding;
   GAME_SESSIONS: DurableObjectNamespace;
   ROOM_LOBBY: DurableObjectNamespace;
   ACCOUNT_DIRECTORY: DurableObjectNamespace;

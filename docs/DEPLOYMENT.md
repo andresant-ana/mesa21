@@ -46,7 +46,7 @@ O workflow manual é **bloqueado por padrão**. O job de verificação só inici
 
 ## Bloqueios de segurança antes de disponibilizar ao público
 
-1. **Antiabuso:** proteção de cadastros, login, criação de salas, API, WebSockets e bots via limitação de taxa/controles de borda; o limite atual por username não basta.
+1. **Antiabuso:** rate limiting inicial via Worker foi implementado (documentado em `docs/ABUSE_PROTECTION.md`), mas é local a cada região e não substitui Turnstile, proteção contra bots distribuídos, monitoramento, quotas duráveis por identidade e limites de conexões simultâneas. É um controle parcial.
 2. **Fairness:** o embaralhamento usa geração criptográfica aleatória, mas **não** existe protocolo verificável publicamente de comprometimento/revelação de baralho. Nunca declarar `provably fair` sem implementar e auditar.
 3. **Concorrência e identidade:** contas usam um único `AccountDirectory`, e salas casuais usam armazenamento distinto; multiplayer classificatório com pagamentos idempotentes **não está pronto**.
 4. **Privacidade e custos:** política de dados/retenção, testes de abuso, testes de carga e limites do plano gratuito precisam ser validados. Verificar obrigações legais de jogo de simulação sem dinheiro real.
