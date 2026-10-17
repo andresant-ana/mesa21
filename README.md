@@ -1,6 +1,6 @@
 # MESA/21
 
-Blackjack solo, gratuito e leve, com créditos exclusivamente fictícios e identidade visual Playful Minimalism. Partida, cartas, resultado e saldo casual são autoritativos no servidor. Não há dinheiro real nem créditos classificatórios.
+Blackjack solo e multiplayer casual, gratuito e leve, com créditos exclusivamente fictícios e identidade visual Playful Minimalism. Partida, cartas, resultado e saldo casual são autoritativos no servidor. Não há dinheiro real nem créditos classificatórios.
 
 ## M1 — Fundação e jogo solo
 
@@ -12,16 +12,23 @@ Blackjack solo, gratuito e leve, com créditos exclusivamente fictícios e ident
 - Lobby social inicial em `/salas.html`: salas públicas/privadas, convites por URL, ocupação de cadeiras e WebSocket de participantes. **Partidas multiplayer casuais implementadas em código, ainda sem QA em navegadores reais ou publicação.**
 - Testes determinísticos e CI com checagem estrita de tipos.
 
+## M5 — Contas (primeira fatia)
+
+- `/conta.html` permite criar conta, entrar, recuperar com código de uso único, consultar perfil e sair.
+- Senha derivada com PBKDF2-SHA256, salt aleatório, sessões protegidas por cookies HttpOnly, token revogável com hash no servidor e limitação básica de tentativas por username.
+- Diretório de contas persistido em Durable Object SQLite (sem D1 provisionado).
+- **Atenção:** contas ainda não estão vinculadas às fichas e às mesas: jogo casual continua com identidade de visitante. Detalhes em `docs/ACCOUNTS.md`.
+
 ### Ainda não implementado
 
-Contas, autenticação, recuperação entre dispositivos, partidas multiplayer, chat, ranking global, créditos classificatórios, protocolo de fairness verificável, deploy público e proteção operacional contra abuso automatizado. O saldo de visitante depende do cookie; limpar cookies perde a sessão, e criar várias sessões não é impedido.
+Ledger e créditos por conta, ranking global, classificação persistente, chat, protocolo de fairness verificável, deploy público e proteção operacional contra abuso automatizado. O saldo de visitante depende do cookie; limpar cookies perde a sessão, e criar várias sessões não é impedido.
 
 ## Rodar localmente
 
 Requisito: Node.js 22.12 ou superior.
 
 1. Instale dependências com npm install.
-2. Rode npm run check, npm test e npm run build.
+2. Rode npm run check, npm test, npm run build e npm run smoke.
 3. Em terminais separados, rode npm run dev:api e npm run dev.
 4. Abra http://localhost:5173.
 
@@ -32,10 +39,11 @@ Wrangler mantém os Durable Objects no ambiente local.
 - src/domain: regras e tipos de blackjack.
 - src/worker: endpoints, validação de origem e sessão.
 - src/client: mesa solo, cartas acessíveis e chamadas à API.
-- tests: suíte determinística do motor.
+- tests: suíte determinística do motor, autenticação e integração local real do Worker.
 - docs/STITCH_AUDIT.md: inventário e achados do export Stitch.
 - docs/ARCHITECTURE.md: arquitetura, limites de confiança e execução local.
 - docs/IMPLEMENTATION_PLAN.md: marcos e critérios.
 - docs/SOCIAL_ROOMS.md: contrato das salas de espera reais e limitações de lançamento.
+- docs/ACCOUNTS.md: contrato de autenticação, recuperação, segurança e limites.
 
 O repositório apresenta exclusivamente MESA/21. Leia a arquitetura, a auditoria Stitch e o plano para detalhes.
