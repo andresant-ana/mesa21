@@ -70,3 +70,10 @@
   .room-game-cards .playing-card { width: 58px; height: 81px; font-size: 13px; }
   .room-game-cards .playing-card .card-center { font-size: 19px; }
 }
+
+.room-fairness { margin-top: 22px; border: 1px solid #e6e8dc; border-radius: 20px; background: #f6f8f2; padding: 14px 18px; color: #345648; }
+.room-fairness summary { cursor: pointer; font: 700 13px "Plus Jakarta Sans", sans-serif; }
+.room-fairness summary:focus-visible { outline: 3px solid #b6e7cf; outline-offset: 3px; }
+.room-fairness p { color: #526b5c; font-size: 12px; line-height: 1.6; }
+.room-fairness .shoe-commitment { display: block; margin: 9px 0 13px; overflow-wrap: anywhere; font: 500 11px ui-monospace, monospace; background: #fffdfa; padding: 11px; border-radius: 12px; }
+.room-fairness .button { margin-bottom: 4px; }
