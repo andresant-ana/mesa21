@@ -11,12 +11,14 @@
   "durable_objects": {
     "bindings": [
       { "name": "GAME_SESSIONS", "class_name": "GameSession" },
-      { "name": "ROOM_LOBBY", "class_name": "RoomLobby" }
+      { "name": "ROOM_LOBBY", "class_name": "RoomLobby" },
+      { "name": "ACCOUNT_DIRECTORY", "class_name": "AccountDirectory" }
     ]
   },
   "migrations": [
     { "tag": "v1", "new_sqlite_classes": ["GameSession"] },
-    { "tag": "v2", "new_sqlite_classes": ["RoomLobby"] }
+    { "tag": "v2", "new_sqlite_classes": ["RoomLobby"] },
+    { "tag": "v3", "new_sqlite_classes": ["AccountDirectory"] }
   ],
   "vars": {
     "ENVIRONMENT": "development",
