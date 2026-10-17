@@ -17,16 +17,8 @@
       </header>
 
       <main>
-        <section class="intro" aria-labelledby="page-title">
-          <div>
-            <p class="eyebrow">UMA PARTIDA TRANQUILA</p>
-            <h1 id="page-title">Blackjack, no seu ritmo.</h1>
-            <p class="intro-copy">Pratique suas decisões em uma mesa solo com créditos que não valem dinheiro.</p>
-          </div>
-        </section>
-
         <section class="table mesa-table solo-table" aria-label="Mesa de blackjack">
-          <div class="deck-stack" aria-label="Baralho de Clarice"><span></span><span></span><span></span></div>
+          <div class="deck-stack" aria-label="Baralho"><span></span><span></span><span></span></div>
           <div class="table-status solo-table-status">
             <span class="solo-table-mode">Partida solo</span>
             <div class="solo-table-metrics">
@@ -49,8 +41,8 @@
               </svg>
             </div>
             <div class="dealer-copy">
-              <span class="eyebrow light">SUA DEALER</span>
-              <strong>Clarice</strong>
+              <span class="eyebrow light">DEALER</span>
+              <strong>dealer</strong>
             </div>
             <div class="dealer-total" id="dealer-total" aria-live="polite"></div>
           </div>
@@ -73,15 +65,14 @@
           <section class="controls" aria-label="Ações da partida">
           <div class="bet-control" id="bet-controls">
             <label for="bet">Aposta casual</label>
-            <div class="chip-tray" role="group" aria-label="Selecione o valor da ficha"><button class="chip-button chip-coral" type="button" data-bet="10" aria-label="Apostar 10 créditos" aria-pressed="false">10</button><button class="chip-button chip-cream" type="button" data-bet="20" aria-label="Apostar 20 créditos" aria-pressed="false">20</button><button class="chip-button chip-yellow" type="button" data-bet="50" aria-label="Apostar 50 créditos" aria-pressed="true">50</button><button class="chip-button chip-green" type="button" data-bet="100" aria-label="Apostar 100 créditos" aria-pressed="false">100</button></div>
+            <div class="chip-tray" role="group" aria-label="Selecione o valor da ficha"><button class="chip-button chip-coral" type="button" data-bet="10" aria-label="Selecionar ficha de 10 créditos" aria-pressed="false">10</button><button class="chip-button chip-cream" type="button" data-bet="20" aria-label="Selecionar ficha de 20 créditos" aria-pressed="false">20</button><button class="chip-button chip-yellow" type="button" data-bet="50" aria-label="Selecionar ficha de 50 créditos" aria-pressed="true">50</button><button class="chip-button chip-green" type="button" data-bet="100" aria-label="Selecionar ficha de 100 créditos" aria-pressed="false">100</button></div>
             <div class="bet-select-wrap">
-              <select id="bet" name="bet" aria-label="Valor da aposta em créditos casuais">
+              <input id="bet" name="bet" type="hidden" value="50">
                 <option value="10">10 créditos</option>
                 <option value="20">20 créditos</option>
                 <option value="50" selected>50 créditos</option>
                 <option value="100">100 créditos</option>
-              </select>
-              <span aria-hidden="true">⌄</span>
+
             </div>
           </div>
           <div class="action-buttons">
