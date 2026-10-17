@@ -1,0 +1,22 @@
+.board-main { max-width: 920px; margin: 0 auto; padding: 12px 20px 64px; }
+.board-filters { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 16px; }
+.period-button { background: #f0f2ec; color: #416255; border: none; border-radius: 999px; padding: 12px 17px; font: 700 13px "Plus Jakarta Sans",sans-serif; cursor: pointer; }
+.period-button.is-active { background: #1d3f36; color: white; }
+.period-button:focus-visible { outline: 3px solid #80cab0; outline-offset: 2px; }
+.board-card { background: #fffdfa; border: 1px solid #e5eade; border-radius: 25px; padding: clamp(16px,3vw,28px); }
+.board-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.board-heading h2 { margin: 0; color: #1c3e35; font-size: clamp(17px,2.2vw,21px); letter-spacing: -.03em; }
+.board-heading span { color: #78877e; font-size: 12px; }
+.rank-rows { display: grid; gap: 10px; }
+.rank-item { display: flex; align-items: center; gap: 14px; padding: 15px; border-radius: 17px; background: #f4f6f1; }
+.rank-item:nth-child(1) { background: #edf4e6; }
+.rank-position { color: #7e9486; font: 800 20px "Plus Jakarta Sans",sans-serif; min-width: 34px; }
+.rank-person { flex: 1; min-width: 0; display: grid; gap: 5px; }
+.rank-person strong { color: #27443a; overflow-wrap: anywhere; }
+.rank-person span { color: #829084; font-size: 12px; }
+.rank-profit { white-space: nowrap; font-size: 13px; color: #2d7057; }
+.rank-profit.negative { color: #b14d44; }
+.rank-empty { text-align: center; padding: 25px 12px; color: #5f7569; line-height: 1.6; }
+.board-cta { margin-top: 18px; }
+.board-note { color: #849188; font-size: 12px; margin-top: 22px; line-height: 1.5; }
+@media (max-width:520px) { .rank-item { gap: 8px; padding: 12px 9px; } .rank-profit { font-size: 11px; white-space: normal; text-align: right; } .board-heading span { display: none; } }
