@@ -79,6 +79,9 @@ export default {
     responseHeaders.set("Cache-Control", "no-store");
     responseHeaders.set("X-Content-Type-Options", "nosniff");
     responseHeaders.set("Referrer-Policy", "same-origin");
+    responseHeaders.set("X-Frame-Options", "DENY");
+    responseHeaders.set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
+    responseHeaders.set("Cross-Origin-Resource-Policy", "same-origin");
     if (payload) {
       const authToken = payload.authToken;
       const clearAuth = payload.clearAuth === true;
@@ -126,7 +129,10 @@ function apiJson(body: unknown, status: number): Response {
       "Content-Type": "application/json; charset=utf-8",
       "Cache-Control": "no-store",
       "X-Content-Type-Options": "nosniff",
-      "Referrer-Policy": "same-origin"
+      "Referrer-Policy": "same-origin",
+      "X-Frame-Options": "DENY",
+      "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=()",
+      "Cross-Origin-Resource-Policy": "same-origin"
     }
   });
 }
