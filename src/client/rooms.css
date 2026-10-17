@@ -106,3 +106,56 @@
 @media(max-width:760px) { .mesa-table { border-radius: 32% / 12%; border-width: 6px; }.deck-stack { top: 20%; right: 5%; transform: scale(.8) rotate(8deg); }.room-game-table.mesa-table { min-height: 470px; padding: 21px 12px; border-radius: 30% / 12%; }.room-game-hands { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 7px; }.social-player { min-height: 88px; padding: 7px 3px; }.social-player .room-game-cards { min-height: 67px; }.social-player .playing-card { width: 42px; height: 61px; margin-left: -10px; padding: 4px; font-size: 10px; }.social-player .playing-card .card-center { font-size: 15px; } }
 @media(max-width:400px) { .room-game-table.mesa-table { border-radius: 26% / 10%; padding: 16px 8px; }.room-game-hands { grid-template-columns: repeat(2,minmax(0,1fr)); }.social-player { min-height: 74px; }.table-status { font-size: 10px; } }
 @media(prefers-reduced-motion:reduce) { .card-arrive { animation: none !important; } }
+
+
+/* PR26: a curved rail without clipping information at the narrow upper corners. */
+.mesa-table {
+  border-radius: 64px 64px 28px 28px / 46px 46px 28px 28px;
+  padding-inline: clamp(26px, 6vw, 76px);
+}
+.mesa-table::before {
+  border-radius: 53px 53px 20px 20px / 39px 39px 20px 20px !important;
+}
+.room-game-table.mesa-table {
+  border-radius: 64px 64px 30px 30px / 46px 46px 30px 30px;
+  padding: 34px clamp(30px, 5vw, 64px);
+}
+.mesa-table .table-status { min-height: 32px; padding: 0 4px 12px; }
+.mesa-table .room-game-dealer, .mesa-table .dealer-row { padding-inline: 12px; }
+.mesa-table .dealer-cards, .mesa-table .player-cards { padding-inline: 12px; }
+.mesa-table .deck-stack { z-index: 2; }
+/* Clones move in viewport space so neither the felt rail nor flex/grid clips flight. */
+.flying-card { box-shadow: 0 14px 25px rgba(0,0,0,.24); will-change: transform; }
+.card-in-flight { visibility: hidden !important; }
+.card-flip { animation: reveal-dealer .54s ease-in-out both; backface-visibility: hidden; }
+@keyframes reveal-dealer {
+  0% { transform: perspective(500px) rotateY(-88deg); filter: brightness(.75); }
+  55% { transform: perspective(500px) rotateY(5deg); filter: brightness(1.12); }
+  100% { transform: perspective(500px) rotateY(0deg); filter: brightness(1); }
+}
+@media (max-width: 760px) {
+  /* The game is the primary content when a room is open; invitations follow it. */
+  .rooms-main { display: flex; flex-direction: column; }
+  .rooms-main > .intro { order: 0; }
+  #room-directory { order: 1; }
+  #game-area { order: 2; }
+  #room-details { order: 3; }
+  #rooms-error { order: 4; }
+  .mesa-table { border-width: 6px; border-radius: 34px 34px 22px 22px / 30px 30px 22px 22px; padding-inline: 22px; }
+  .mesa-table::before { inset: 9px !important; border-radius: 26px 26px 16px 16px / 22px 22px 16px 16px !important; }
+  .room-game-table.mesa-table { border-radius: 34px 34px 22px 22px / 30px 30px 22px 22px; padding: 28px 18px; }
+  .mesa-table .table-status { flex-wrap: wrap; padding-inline: 6px; }
+  .mesa-table .dealer-row, .mesa-table .room-game-dealer { padding-inline: 4px; }
+  .room-detail-layout { padding-bottom: 15px; }
+  .room-game { padding-top: 5px; }
+  .room-game-actions { position: sticky; bottom: 4px; z-index: 10; padding: 12px; border: 1px solid #e1e8df; border-radius: 18px; background: rgba(255,253,250,.98); box-shadow: 0 10px 22px rgba(24,59,50,.12); }
+}
+@media (max-width: 400px) {
+  .mesa-table { padding-inline: 15px; }
+  .room-game-table.mesa-table { padding: 24px 12px; border-radius: 28px 28px 18px 18px / 25px 25px 18px 18px; }
+  .mesa-table .table-status { font-size: 11px; }
+  .deck-stack { right: 4%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-flip { animation: none !important; }
+}
