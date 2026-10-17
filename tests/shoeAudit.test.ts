@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createShuffledShoe } from "../src/domain/blackjack.ts";
-import { newAuditedShoe, retireShoe, publicShoeCommitment, verifyRevealedShoe, verifyShoeDrawTrace, retainFinishedDraws } from "../src/domain/shoeAudit.ts";
+import { newAuditedShoe, retireShoe, publicShoeCommitment, verifyRevealedShoe, verifyShoeDrawTrace, retainFinishedDraws, retainFinishedRound, verifyShoeRoundReplay } from "../src/domain/shoeAudit.ts";
 import { openBetting, placeTableBet, dealTable, playTableAction } from "../src/domain/socialGame.ts";
 
 test("compromisso SHA-256 publica somente metadados, nunca baralho ou nonce ativo", async () => {
@@ -105,4 +105,70 @@ test("rejects duplicate archival and cannot leak active draw transcript", async 
   const publicRecord = JSON.stringify(publicShoeCommitment(audit));
   assert.ok(!publicRecord.includes("draws"));
   assert.ok(!publicRecord.includes("recipient"));
+});
+
+
+test("deterministic replay checks dealer, wagers, turn legality and final credits", async () => {
+  const { shoe, active } = await newAuditedShoe(100);
+  const audit = { active, revealed: [] as ReturnType<typeof retireShoe>[] };
+  const wallets = [
+    { id: "ABCDEF012345", credits: 2000 },
+    { id: "012345ABCDEF", credits: 2000 }
+  ];
+  let remaining = shoe;
+  for (let count = 0; count < 2; count++) {
+    const round = openBetting(wallets, remaining);
+    placeTableBet(round, wallets[0]!, 20);
+    placeTableBet(round, wallets[1]!, 30);
+    dealTable(round, wallets);
+    while (round.phase === "playing") {
+      playTableAction(round, wallets, round.seats[round.turn]!.id, "stand");
+    }
+    retainFinishedRound(audit, round);
+    remaining = round.shoe;
+  }
+  const proof = retireShoe(audit, remaining.length, 200);
+  assert.equal(proof.rounds?.length, 2);
+  assert.equal(await verifyRevealedShoe(proof), true);
+  assert.equal(verifyShoeDrawTrace(proof), true);
+  assert.equal(verifyShoeRoundReplay(proof), true);
+
+  const changedBet = structuredClone(proof);
+  const betEvent = changedBet.rounds![0]!.events.find((e) => e.type === "bet");
+  if (!betEvent || betEvent.type !== "bet") throw new Error("BET_NOT_RECORDED");
+  betEvent.wager += 10;
+  assert.equal(verifyShoeRoundReplay(changedBet), false);
+
+  const changedBalance = structuredClone(proof);
+  changedBalance.rounds![0]!.closingCredits[0]!.credits += 100;
+  assert.equal(verifyShoeRoundReplay(changedBalance), false);
+
+  const changedDealer = structuredClone(proof);
+  const revealed = changedDealer.rounds![0]!.finalView.dealerCards;
+  if (revealed[0]) revealed[0] = { ...revealed[0], rank: revealed[0].rank === "A" ? "2" : "A" };
+  assert.equal(verifyShoeRoundReplay(changedDealer), false);
+
+  const changedOrder = structuredClone(proof);
+  changedOrder.rounds![0]!.events.reverse();
+  assert.equal(verifyShoeRoundReplay(changedOrder), false);
+});
+
+test("replay rejects forged extra round and partial/incomplete receipts", async () => {
+  const { shoe, active } = await newAuditedShoe(100);
+  const audit = { active, revealed: [] as ReturnType<typeof retireShoe>[] };
+  const wallets = [{ id: "ABCDEF012345", credits: 2000 }];
+  const round = openBetting(wallets, shoe);
+  placeTableBet(round, wallets[0]!, 10);
+  dealTable(round, wallets);
+  if (round.phase === "playing") playTableAction(round, wallets, wallets[0]!.id, "stand");
+  retainFinishedRound(audit, round);
+  assert.throws(() => retainFinishedRound(audit, round), /REPLAY_SHOE_OFFSET/);
+  const proof = retireShoe(audit, round.shoe.length, 200);
+  assert.equal(verifyShoeRoundReplay(proof), true);
+  const missing = structuredClone(proof);
+  missing.rounds = [];
+  assert.equal(verifyShoeRoundReplay(missing), false);
+  const wrongShoe = structuredClone(proof);
+  wrongShoe.rounds![0]!.shoeStart--;
+  assert.equal(verifyShoeRoundReplay(wrongShoe), false);
 });

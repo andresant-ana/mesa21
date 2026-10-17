@@ -1,14 +1,24 @@
 import type { Card } from "./blackjack.ts";
-import type { TableDraw } from "./socialGame.ts";
+import { openBetting, placeTableBet, dealTable, playTableAction, publicTable } from "./socialGame.ts";
+import type { TableDraw, TableRound, TableEvent, TableWallet } from "./socialGame.ts";
 import { createShuffledShoe, SHOE_DECKS, RANKS, SUITS } from "./blackjack.ts";
 
 export const AUDIT_PROTOCOL = "mesa21-shoe-commit-v1";
+
+export type AuditedRound = {
+  shoeStart: number;
+  openingCredits: TableWallet[];
+  events: TableEvent[];
+  finalView: ReturnType<typeof publicTable>;
+  closingCredits: TableWallet[];
+};
 
 export type ActiveShoeCommitment = {
   commitment: string;
   nonce: string;
   originalCards: Card[];
   draws?: TableDraw[];
+  rounds?: AuditedRound[];
   committedAt: number;
 };
 export type RevealedShoe = {
@@ -18,6 +28,7 @@ export type RevealedShoe = {
   cards: Card[];
   consumed: number;
   draws?: TableDraw[];
+  rounds?: AuditedRound[];
   committedAt: number;
   revealedAt: number;
 };
@@ -48,7 +59,7 @@ export async function newAuditedShoe(
   const commitment = await sha256(commitPayload(nonce, cards));
   return {
     shoe: [...shuffled],
-    active: { commitment, nonce, originalCards: cards, draws: [], committedAt: now }
+    active: { commitment, nonce, originalCards: cards, draws: [], rounds: [], committedAt: now }
   };
 }
 
@@ -67,6 +78,7 @@ export function retireShoe(state: ShoeAuditState, remaining: number, now = Date.
     cards: structuredClone(state.active.originalCards),
     consumed: state.active.originalCards.length - remaining,
     draws: structuredClone(state.active.draws ?? []),
+    rounds: structuredClone(state.active.rounds ?? []),
     committedAt: state.active.committedAt,
     revealedAt: now
   };
@@ -139,4 +151,76 @@ export function verifyShoeDrawTrace(proof: RevealedShoe): boolean {
       !!committedCard && !!draw.card &&
       draw.card.rank === committedCard.rank && draw.card.suit === committedCard.suit;
   });
+}
+
+
+/**
+ * Archive the finished round's immutable input events and terminal result.
+ * All data remains private until the complete shoe is retired.
+ */
+export function retainFinishedRound(audit: ShoeAuditState, round: TableRound): void {
+  if (round.phase !== "finished" || !round.closingCredits) throw new Error("ROUND_NOT_FINISHED");
+  const start = audit.active.draws?.length ?? 0;
+  if (round.initialShoeLength !== audit.active.originalCards.length - start) {
+    throw new Error("REPLAY_SHOE_OFFSET");
+  }
+  retainFinishedDraws(audit, round.draws);
+  (audit.active.rounds ??= []).push({
+    shoeStart: round.initialShoeLength,
+    openingCredits: structuredClone(round.openingCredits),
+    events: structuredClone(round.events),
+    finalView: structuredClone(publicTable(round)),
+    closingCredits: structuredClone(round.closingCredits)
+  });
+}
+
+/**
+ * Independently repeat each archived betting/action event against the
+ * committed deck. This checks turn legality, blackjack rules, payouts, dealer
+ * behavior, terminal hands and the per-player credit deltas.
+ *
+ * Does not prove server/player seed fairness or bind browser-observed snapshots.
+ */
+export function verifyShoeRoundReplay(proof: RevealedShoe): boolean {
+  if (!Array.isArray(proof.rounds) || !Array.isArray(proof.draws) ||
+    !Number.isSafeInteger(proof.consumed) || proof.consumed < 0 ||
+    proof.consumed > proof.cards.length || proof.rounds.length > 100) return false;
+  try {
+    let shoe = structuredClone(proof.cards);
+    let eventCount = 0;
+    const collected: TableDraw[] = [];
+    for (const receipt of proof.rounds) {
+      if (!Array.isArray(receipt.events) || !Array.isArray(receipt.openingCredits) ||
+        !Array.isArray(receipt.closingCredits) || receipt.events.length > 200 ||
+        receipt.openingCredits.length < 1 || receipt.openingCredits.length > 5 ||
+        receipt.shoeStart !== shoe.length) return false;
+      eventCount += receipt.events.length;
+      if (eventCount > 10000) return false;
+      const wallets = structuredClone(receipt.openingCredits);
+      const round = openBetting(wallets, shoe);
+      for (const event of receipt.events) {
+        if (event.type === "bet") {
+          const wallet = wallets.find((member) => member.id === event.seatId);
+          if (!wallet) return false;
+          placeTableBet(round, wallet, event.wager);
+        } else if (event.type === "deal") {
+          dealTable(round, wallets);
+        } else if (event.type === "action") {
+          playTableAction(round, wallets, event.seatId, event.action);
+        } else {
+          return false;
+        }
+      }
+      if (round.phase !== "finished" || JSON.stringify(round.events) !== JSON.stringify(receipt.events) ||
+        JSON.stringify(publicTable(round)) !== JSON.stringify(receipt.finalView) ||
+        JSON.stringify(round.closingCredits) !== JSON.stringify(receipt.closingCredits)) return false;
+      collected.push(...round.draws);
+      shoe = round.shoe;
+    }
+    return shoe.length === proof.cards.length - proof.consumed &&
+      JSON.stringify(collected) === JSON.stringify(proof.draws) &&
+      verifyShoeDrawTrace(proof);
+  } catch {
+    return false;
+  }
 }

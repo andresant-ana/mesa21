@@ -5,6 +5,10 @@ import {
 
 export type TablePhase = "betting" | "playing" | "finished";
 export type TableDraw = { offset: number; card: Card; recipient: string; hand: number };
+export type TableEvent =
+  | { type: "bet"; seatId: string; wager: number }
+  | { type: "deal" }
+  | { type: "action"; seatId: string; action: Action };
 export const BETTING_TIMEOUT_MS = 120_000;
 export const TURN_TIMEOUT_MS = 45_000;
 export type TableWallet = { id: string; credits: number };
@@ -19,6 +23,9 @@ export type TableRound = {
   deadlineAt: number | null;
   initialShoeLength: number;
   draws: TableDraw[];
+  openingCredits: TableWallet[];
+  events: TableEvent[];
+  closingCredits: TableWallet[] | null;
 };
 
 export class TableError extends Error {
@@ -42,7 +49,10 @@ export function openBetting(members: readonly TableWallet[], shoe: Card[]): Tabl
     turn: -1,
     deadlineAt: Date.now() + BETTING_TIMEOUT_MS,
     initialShoeLength: shoe.length,
-    draws: []
+    draws: [],
+    openingCredits: members.map(({ id, credits }) => ({ id, credits })),
+    events: [],
+    closingCredits: null
   };
 }
 
@@ -57,6 +67,7 @@ export function placeTableBet(round: TableRound, member: TableWallet, wager: num
   if (member.credits < wager) throw new TableError("INSUFFICIENT_CREDITS");
   member.credits -= wager;
   seat.wager = wager;
+  round.events.push({ type: "bet", seatId: member.id, wager });
 }
 
 export function dealTable(round: TableRound, wallets: TableWallet[]): void {
@@ -70,6 +81,7 @@ export function dealTable(round: TableRound, wallets: TableWallet[]): void {
   for (const seat of seats) seat.hands[0]!.cards.push(draw(round, seat.id, 0));
   round.dealerCards.push(draw(round, "dealer", 0));
   round.phase = "playing";
+  round.events.push({ type: "deal" });
   round.turn = 0;
   round.deadlineAt = Date.now() + TURN_TIMEOUT_MS;
 
@@ -106,6 +118,7 @@ export function playTableAction(round: TableRound, wallets: TableWallet[], seatI
       throw new TableError("SPLIT_UNAVAILABLE");
     }
     if (round.shoe.length < 2) throw new TableError("SHOE_EXHAUSTED");
+    round.events.push({ type: "action", seatId, action });
     wallet.credits -= hand.wager;
     const second = hand.cards.pop()!;
     const aceSplit = hand.cards[0]!.rank === "A";
@@ -123,6 +136,7 @@ export function playTableAction(round: TableRound, wallets: TableWallet[], seatI
 
   if (action === "hit") {
     if (!round.shoe.length) throw new TableError("SHOE_EXHAUSTED");
+    round.events.push({ type: "action", seatId, action });
     hand.cards.push(draw(round, seat.id, seat.activeHand));
     const total = scoreHand(hand.cards).total;
     if (total >= 21) {
@@ -134,6 +148,7 @@ export function playTableAction(round: TableRound, wallets: TableWallet[], seatI
   }
 
   if (action === "stand") {
+    round.events.push({ type: "action", seatId, action });
     hand.done = true;
     advanceTableTurn(round, wallets);
     return;
@@ -144,6 +159,7 @@ export function playTableAction(round: TableRound, wallets: TableWallet[], seatI
       throw new TableError("DOUBLE_UNAVAILABLE");
     }
     if (!round.shoe.length) throw new TableError("SHOE_EXHAUSTED");
+    round.events.push({ type: "action", seatId, action });
     wallet.credits -= hand.wager;
     hand.wager *= 2;
     hand.cards.push(draw(round, seat.id, seat.activeHand));
@@ -197,6 +213,7 @@ function settleTable(round: TableRound, wallets: TableWallet[]): void {
   round.phase = "finished";
   round.turn = -1;
   round.deadlineAt = null;
+  round.closingCredits = wallets.map(({ id, credits }) => ({ id, credits }));
 }
 
 function value(card: Card): number {

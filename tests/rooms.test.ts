@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { RoomLobby } from "../src/worker/RoomLobby.ts";
 import worker from "../src/worker/index.ts";
-import { verifyRevealedShoe } from "../src/domain/shoeAudit.ts";
+import { verifyRevealedShoe, verifyShoeDrawTrace, verifyShoeRoundReplay } from "../src/domain/shoeAudit.ts";
 import type { RevealedShoe } from "../src/domain/shoeAudit.ts";
 
 const session = (char: string) => char.repeat(43);
@@ -315,15 +315,25 @@ test("compromisso é publicado antes das apostas, prova só aparece após aposen
   assert.ok(!JSON.stringify(activeBody).includes("nonce"));
   assert.ok(!JSON.stringify(activeBody).includes("cards"));
 
-  // Simulate 75% penetration and round finish to isolate audit retirement behavior.
-  const stored = storage.get("rooms") as { rooms: Array<{
-    round: { phase: string; shoe: unknown[] };
-    audit: { active: { originalCards: unknown[] } };
-  }> };
-  stored.rooms[0]!.round.phase = "finished";
-  stored.rooms[0]!.round.shoe = stored.rooms[0]!.audit.active.originalCards.slice(234);
-  const second = await request(host, "/rooms/" + room.code + "/start", {});
-  assert.equal(second.status, 200);
+  // Consume the real shoe across completed rounds; no synthetic deck mutation.
+  let second: Response | null = null;
+  for (let index = 0; index < 100; index++) {
+    const bet = await request(host, "/rooms/" + room.code + "/bet", { bet: 10 });
+    assert.equal(bet.status, 200);
+    const current = (await bet.json() as { room: { round: { phase: string } } }).room.round;
+    if (current.phase === "playing") {
+      assert.equal((await request(host, "/rooms/" + room.code + "/action", { action: "stand" })).status, 200);
+    }
+    const next = await request(host, "/rooms/" + room.code + "/start", {});
+    assert.equal(next.status, 200);
+    const copy = next.clone();
+    const data = await copy.json() as { room: { shoeAudit: { revealedCount: number } } };
+    if (data.room.shoeAudit.revealedCount > 0) {
+      second = next;
+      break;
+    }
+  }
+  assert.ok(second, "after 75% penetration the original shoe must be retired");
   const newSnapshot = (await second.json() as { room: {
     shoeAudit: { commitment: string; revealedCount: number };
   } }).room;
@@ -338,6 +348,45 @@ test("compromisso é publicado antes das apostas, prova só aparece após aposen
   assert.equal(proofBody.current.nonce, undefined);
   assert.equal(proofBody.current.cards, undefined);
   assert.equal(proofBody.revealed[0]!.commitment, snapshot.shoeAudit.commitment);
-  assert.equal(proofBody.revealed[0]!.consumed, 234);
+  assert.ok(proofBody.revealed[0]!.consumed >= 234);
   assert.equal(await verifyRevealedShoe(proofBody.revealed[0]!), true);
+  assert.equal(verifyShoeDrawTrace(proofBody.revealed[0]!), true);
+  assert.equal(verifyShoeRoundReplay(proofBody.revealed[0]!), true);
+});
+
+
+test("betting timeout retires existing shoe without losing prior completed-round audit", async () => {
+  const { request, storage, lobby } = setup();
+  const host = session("a");
+  const created = await request(host, "/rooms", create());
+  const { room } = await created.json() as { room: { code: string } };
+  const url = "/rooms/" + room.code;
+  assert.equal((await request(host, url + "/start", {})).status, 200);
+  assert.equal((await request(host, url + "/bet", { bet: 10 })).status, 200);
+  let round = (storage.get("rooms") as { rooms: Array<{ round: {
+    phase: string; turn: number; seats: Array<{ id: string }>; deadlineAt: number | null
+  } }> }).rooms[0]!.round;
+  if (round.phase === "playing") {
+    assert.equal((await request(host, url + "/action", { action: "stand" })).status, 200);
+  }
+  assert.equal(round.phase, "finished");
+  assert.equal((await request(host, url + "/start", {})).status, 200);
+  const state = storage.get("rooms") as { rooms: Array<{
+    round: { deadlineAt: number } | null;
+    audit: { active: { draws: unknown[] }; revealed: unknown[] };
+  }> };
+  const archived = state.rooms[0]!.audit.active.draws.length;
+  assert.ok(archived >= 4);
+  state.rooms[0]!.round!.deadlineAt = Date.now() - 1;
+  await lobby.alarm();
+  assert.equal(state.rooms[0]!.round, null);
+  const restarted = await request(host, url + "/start", {});
+  assert.equal(restarted.status, 200);
+  const revealed = await request(host, url + "/audit");
+  const data = await revealed.json() as { revealed: Array<import("../src/domain/shoeAudit.ts").RevealedShoe> };
+  assert.equal(data.revealed.length, 1);
+  assert.equal(data.revealed[0]!.consumed, archived);
+  assert.equal(await verifyRevealedShoe(data.revealed[0]!), true);
+  assert.equal(verifyShoeDrawTrace(data.revealed[0]!), true);
+  assert.equal(verifyShoeRoundReplay(data.revealed[0]!), true);
 });
