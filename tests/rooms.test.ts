@@ -219,3 +219,76 @@ test("alarme faz o jogador ausente parar e passa ao próximo sem duplicar crédi
   const { room: view } = await snapshot.json() as { room: { myCredits: number } };
   assert.equal(view.myCredits, 2_000); // 18 versus dealer final 18, push.
 });
+
+
+test("não permite mais que duas conexões ativas por participante na mesma sala", async () => {
+  const state = new Map<string, unknown>();
+  const sockets: Array<{ deserializeAttachment(): unknown; close(code: number, reason: string): void }> = [];
+  const lobby = new RoomLobby({
+    storage: {
+      async get<T>(key: string) { return state.get(key) as T | undefined; },
+      async put<T>(key: string, value: T) { state.set(key, value); }
+    },
+    acceptWebSocket(_socket) {},
+    getWebSockets: () => sockets as unknown as WebSocket[]
+  }, {} as never);
+  const host = session("a");
+  const createResponse = await lobby.fetch(new Request("https://internal/rooms", {
+    method: "POST", headers: { "x-mesa21-session": host },
+    body: JSON.stringify(create())
+  }));
+  assert.equal(createResponse.status, 201);
+  const { room } = await createResponse.json() as { room: { code: string } };
+  const url = "https://internal/rooms/" + room.code + "/stream";
+  for (let index = 0; index < 2; index++) {
+    sockets.push({
+      deserializeAttachment: () => ({ code: room.code, session: host }),
+      close() {}
+    });
+  }
+  const blocked = await lobby.fetch(new Request(url, {
+    headers: { "x-mesa21-session": host, upgrade: "websocket" }
+  }));
+  assert.equal(blocked.status, 429);
+  assert.equal((await blocked.json() as { error: string }).error, "SOCKET_CAPACITY");
+});
+
+test("saída revoga sockets associados à sessão e impede novos eventos privados", async () => {
+  const storage = new Map<string, unknown>();
+  const closed: string[] = [];
+  const sockets: Array<{
+    deserializeAttachment(): unknown;
+    send(message: string): void;
+    close(code: number, reason: string): void;
+  }> = [];
+  const lobby = new RoomLobby({
+    storage: {
+      async get<T>(key: string) { return storage.get(key) as T | undefined; },
+      async put<T>(key: string, value: T) { storage.set(key, value); }
+    },
+    getWebSockets: () => sockets as unknown as WebSocket[]
+  }, {} as never);
+  const invoke = (token: string, path: string, body?: unknown) => lobby.fetch(new Request(
+    "https://internal" + path, {
+      method: body === undefined ? "GET" : "POST",
+      headers: { "x-mesa21-session": token },
+      body: body === undefined ? undefined : JSON.stringify(body)
+    }
+  ));
+  const host = session("a"), guest = session("b");
+  const created = await invoke(host, "/rooms", create("Mesa privada", "private"));
+  const { room } = await created.json() as { room: { code: string } };
+  await invoke(guest, "/rooms/" + room.code + "/join", { displayName: "luigi" });
+  const received: string[] = [];
+  sockets.push({
+    deserializeAttachment: () => ({ code: room.code, session: guest }),
+    send: (msg) => { received.push(msg); },
+    close: (_code, reason) => { closed.push(reason); }
+  });
+  assert.equal((await invoke(guest, "/rooms/" + room.code + "/leave", {})).status, 200);
+  assert.ok(closed.some((reason) => reason.includes("saiu")));
+  const previous = received.length;
+  assert.equal((await invoke(host, "/rooms/" + room.code + "/start", {})).status, 200);
+  assert.equal(received.length, previous, "former member must not receive private round updates");
+  assert.ok(closed.some((reason) => reason.includes("encerrada")));
+});

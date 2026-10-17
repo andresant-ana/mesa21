@@ -29,6 +29,9 @@ declare const WebSocketPair: { new (): { 0: WebSocket; 1: CloudflareSocket } };
 const MAX_ROOMS = 80;
 const MAX_PLAYERS = 5;
 const MAX_SPECTATORS = 20;
+const MAX_SOCKETS_PER_SESSION = 2;
+const MAX_SOCKETS_PER_ROOM = 40;
+const MAX_TOTAL_SOCKETS = 256;
 const TTL_MS = 24 * 60 * 60 * 1_000;
 const CODE_PATTERN = /^[A-Z0-9]{12}$/;
 const SESSION_PATTERN = /^[A-Za-z0-9_-]{40,64}$/;
@@ -188,7 +191,24 @@ export class RoomLobby {
     if (action === "stream" && request.method === "GET") {
       if (!hasMember(room, session)) return result({ error: "NOT_IN_ROOM" }, 403);
       if (request.headers.get("upgrade")?.toLowerCase() !== "websocket") return result({ error: "UPGRADE_REQUIRED" }, 426);
-      if (!this.state.acceptWebSocket) return result({ error: "WEBSOCKET_UNAVAILABLE" }, 501);
+      if (!this.state.acceptWebSocket || !this.state.getWebSockets) {
+        return result({ error: "WEBSOCKET_UNAVAILABLE" }, 501);
+      }
+      const sockets = this.state.getWebSockets();
+      if (sockets.length >= MAX_TOTAL_SOCKETS) return result({ error: "SOCKET_CAPACITY" }, 429);
+      let openForRoom = 0;
+      let openForSession = 0;
+      for (const socket of sockets) {
+        try {
+          const owner = (socket as CloudflareSocket).deserializeAttachment() as { code?: string; session?: string } | null;
+          if (owner?.code !== room.code) continue;
+          openForRoom++;
+          if (owner.session === session) openForSession++;
+        } catch { /* malformed socket attachment: not counted as a member */ }
+      }
+      if (openForRoom >= MAX_SOCKETS_PER_ROOM || openForSession >= MAX_SOCKETS_PER_SESSION) {
+        return result({ error: "SOCKET_CAPACITY" }, 429);
+      }
       const pair = new WebSocketPair();
       const server = pair[1];
       server.serializeAttachment({ code: room.code, session });
@@ -290,6 +310,7 @@ export class RoomLobby {
       if (room.members.some((m) => m.session === session) && room.round && room.round.phase !== "finished") {
         return result({ error: "ROUND_ACTIVE" }, 409);
       }
+      this.closeMemberSockets(room.code, session);
       room.members = room.members.filter((m) => m.session !== session);
       room.spectators = room.spectators.filter((m) => m.session !== session);
       if (room.members.length === 0 && room.spectators.length > 0) room.members.push(room.spectators.shift()!);
@@ -303,11 +324,27 @@ export class RoomLobby {
     return result({ error: "NOT_FOUND" }, 404);
   }
 
+  private closeMemberSockets(code: string, session: string): void {
+    for (const socket of this.state.getWebSockets?.() ?? []) {
+      try {
+        const owner = (socket as CloudflareSocket).deserializeAttachment() as { code?: string; session?: string } | null;
+        if (owner?.code === code && owner.session === session) {
+          socket.close(1008, "Você saiu da sala");
+        }
+      } catch { /* Dead sockets are not authoritative. */ }
+    }
+  }
+
   private broadcast(room: Room): void {
     for (const socket of this.state.getWebSockets?.() ?? []) {
       try {
         const attachment = (socket as CloudflareSocket).deserializeAttachment() as { code: string; session: string } | null;
         if (attachment?.code === room.code) {
+          // Leaving a room revokes receipt of further snapshots, including private-room state.
+          if (!hasMember(room, attachment.session)) {
+            socket.close(1008, "Participação encerrada");
+            continue;
+          }
           socket.send(JSON.stringify({ type: "room", room: roomDetails(room, attachment.session) }));
         }
       } catch {
