@@ -2,8 +2,10 @@ import type { Env } from "./types.ts";
 
 export { GameSession } from "./GameSession.ts";
 export { RoomLobby } from "./RoomLobby.ts";
+export { AccountDirectory } from "./AccountDirectory.ts";
 
 const SESSION_COOKIE = "mesa21_session";
+const AUTH_COOKIE = "mesa21_auth";
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -12,6 +14,7 @@ export default {
     if (!["GET", "POST"].includes(request.method)) return apiJson({ error: "METHOD_NOT_ALLOWED" }, 405);
 
     const isRoomRequest = url.pathname === "/api/rooms" || url.pathname.startsWith("/api/rooms/");
+    const isAuthRequest = url.pathname.startsWith("/api/auth/");
     const isSocketRequest = isRoomRequest && url.pathname.endsWith("/stream");
     if (isSocketRequest) {
       const origin = request.headers.get("origin");
@@ -37,13 +40,15 @@ export default {
     }
 
     const token = getCookie(request.headers.get("cookie"), SESSION_COOKIE) ?? createSessionToken();
-    const namespace = isRoomRequest ? env.ROOM_LOBBY : env.GAME_SESSIONS;
-    const id = namespace.idFromName(isRoomRequest ? "global-v1" : token);
+    const namespace = isRoomRequest ? env.ROOM_LOBBY : isAuthRequest ? env.ACCOUNT_DIRECTORY : env.GAME_SESSIONS;
+    const id = namespace.idFromName(isRoomRequest ? "global-v1" : isAuthRequest ? "accounts-v1" : token);
     const stub = namespace.get(id);
     const headers = new Headers(request.headers);
     // Never trust client-supplied identity forwarding headers.
     headers.delete("x-mesa21-session");
+    headers.delete("x-mesa21-auth-token");
     if (isRoomRequest) headers.set("x-mesa21-session", token);
+    if (isAuthRequest) headers.set("x-mesa21-auth-token", getCookie(request.headers.get("cookie"), AUTH_COOKIE) ?? "");
     let response: Response;
     try {
       response = await stub.fetch(new Request("https://mesa21.internal" + url.pathname.replace(/^\/api/, ""), {
@@ -58,16 +63,40 @@ export default {
     // WebSocket upgrade responses must retain the Cloudflare webSocket handle.
     if (isSocketRequest && response.status === 101) return response;
 
+    // Strip private credentials returned by the trusted Durable Object.
+    let payload: Record<string, unknown> | null = null;
+    if (isAuthRequest && response.headers.get("content-type")?.includes("application/json")) {
+      try {
+        const candidate: unknown = await response.json();
+        if (candidate && typeof candidate === "object" && !Array.isArray(candidate)) {
+          payload = candidate as Record<string, unknown>;
+        }
+      } catch { return apiJson({ error: "SERVICE_UNAVAILABLE" }, 503); }
+    }
     const responseHeaders = new Headers(response.headers);
     responseHeaders.set("Cache-Control", "no-store");
     responseHeaders.set("X-Content-Type-Options", "nosniff");
     responseHeaders.set("Referrer-Policy", "same-origin");
+    if (payload) {
+      const authToken = payload.authToken;
+      const clearAuth = payload.clearAuth === true;
+      delete payload.authToken;
+      delete payload.clearAuth;
+      const secure = url.protocol === "https:" ? "; Secure" : "";
+      if (typeof authToken === "string" && /^[A-Za-z0-9_-]{40,64}$/.test(authToken)) {
+        responseHeaders.append("Set-Cookie", AUTH_COOKIE + "=" + authToken +
+          "; Path=/; HttpOnly; SameSite=Strict; Max-Age=2592000" + secure);
+      } else if (clearAuth) {
+        responseHeaders.append("Set-Cookie", AUTH_COOKIE +
+          "=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0" + secure);
+      }
+    }
     if (!getCookie(request.headers.get("cookie"), SESSION_COOKIE)) {
       // Enforce Secure on HTTPS regardless of the deployment environment flag.
       const secure = url.protocol === "https:" ? "; Secure" : "";
       responseHeaders.append("Set-Cookie", SESSION_COOKIE + "=" + token + "; Path=/; HttpOnly; SameSite=Strict; Max-Age=2592000" + secure);
     }
-    return new Response(response.body, { status: response.status, headers: responseHeaders });
+    return new Response(payload ? JSON.stringify(payload) : response.body, { status: response.status, headers: responseHeaders });
   }
 };
 
