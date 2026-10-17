@@ -79,6 +79,8 @@ function messageFor(code: string): string {
     INVALID_ROOM: "Confira o nome da mesa, seu apelido e a privacidade.",
     RANKED_UNAVAILABLE: "As salas classificatórias ainda não estão disponíveis.",
     ROOM_LIMIT_REACHED: "Muitas mesas abertas agora. Tente novamente em alguns minutos.",
+    RATE_LIMITED: "Muitas solicitações. Aguarde um minuto e tente novamente.",
+    RATE_LIMIT_UNAVAILABLE: "O serviço de proteção das salas está temporariamente indisponível.",
     UNAUTHORIZED: "Sua sessão expirou. Atualize a página.",
     NOT_IN_ROOM: "Entre na sala para acompanhar as atualizações."
   } as Record<string, string>)[code] ?? "Não foi possível concluir a ação. Tente novamente.";
