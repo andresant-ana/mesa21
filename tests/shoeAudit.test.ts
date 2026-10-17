@@ -34,7 +34,7 @@ test("adulteração de ordem, nonce, número de cartas ou contagem invalida prov
   const modified = structuredClone(proof);
   [modified.cards[0], modified.cards[1]] = [modified.cards[1]!, modified.cards[0]!];
   // Force an actual permutation change, not a swap between identical ranks/suits.
-  modified.cards[0] = { rank: "A", suit: "clubs" };
+  modified.cards[0] = { rank: modified.cards[0]!.rank === "A" ? "2" : "A", suit: modified.cards[0]!.suit };
   assert.equal(await verifyRevealedShoe(modified), false);
   assert.equal(await verifyRevealedShoe({ ...proof, nonce: "0".repeat(64) }), false);
   assert.equal(await verifyRevealedShoe({ ...proof, consumed: 313 }), false);
