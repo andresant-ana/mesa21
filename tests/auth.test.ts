@@ -3,7 +3,7 @@ import test from "node:test";
 import { AccountDirectory } from "../src/worker/AccountDirectory.ts";
 import worker from "../src/worker/index.ts";
 
-const goodPassword = "A safe passphrase #2026";
+const goodPassword = "8chars!!";
 const nextPassword = "Different stronger password 2026!";
 
 function fixture() {
@@ -79,6 +79,14 @@ test("logout revoga token, não derruba outra sessão e mantém perfil", async (
 test("rejeita senhas fracas e usernames inválidos, e bloqueia após cinco erros", async () => {
   const { endpoint } = fixture();
   assert.equal((await endpoint("/auth/register", { username: "ab", password: goodPassword })).status, 400);
+  assert.equal((await endpoint("/auth/register", { username: "shortpw", password: "7chars!" })).status, 400);
+  const eight = await endpoint("/auth/register", { username: "eightchr", password: goodPassword });
+  assert.equal(eight.status, 201);
+  assert.equal((await endpoint("/auth/login", { username: "eightchr", password: goodPassword })).status, 200);
+  assert.equal((await endpoint("/auth/me", undefined, eight.body.authToken as string)).status, 200);
+  const long = await endpoint("/auth/register", { username: "longpassword", password: nextPassword });
+  assert.equal(long.status, 201, "passwords of 12 or more characters remain valid");
+  assert.equal((await endpoint("/auth/login", { username: "longpassword", password: nextPassword })).status, 200);
   assert.equal((await endpoint("/auth/register", { username: "test", password: "123" })).status, 400);
   assert.equal((await endpoint("/auth/register", { username: "admin", password: goodPassword })).status, 400);
   await endpoint("/auth/register", { username: "matheus", password: goodPassword });

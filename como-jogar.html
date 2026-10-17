@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#faf8f5">
+  <meta name="description" content="Aprenda as regras do blackjack no MESA/21.">
+  <title>MESA/21 - Como jogar</title>
+  <link rel="stylesheet" href="/src/client/styles.css">
+  <style>
+    .how-main { max-width: 860px; margin: 0 auto; padding: 32px 0 64px; }
+    .how-card { display: grid; gap: 18px; padding: clamp(22px, 5vw, 42px); border: 1px solid #e7e5dc; border-radius: 28px; background: #fffdfa; box-shadow: 0 12px 34px rgba(29,63,54,.05); }
+    .how-card h2 { margin: 0; color: #1d3f36; font: 800 21px "Plus Jakarta Sans", sans-serif; }
+    .how-card p, .how-card li { color: #58675f; line-height: 1.7; }
+    .how-card ol { margin: 0; padding-left: 22px; }
+    .how-cta { display: flex; flex-wrap: wrap; gap: 10px; }
+  </style>
+</head>
+<body><div class="app-shell">
+  <header class="topbar"><a class="brand" href="/" aria-label="MESA/21 - início"><span>MESA</span><span class="brand-mark">/21</span></a>
+    <nav class="room-nav" aria-label="Navegação principal"><a class="room-nav-link" href="/">Salas</a><a class="room-nav-link" href="/solo.html">Jogar solo</a><a class="room-nav-link" href="/ranking.html">Ranking</a><a class="room-nav-link active" href="/como-jogar.html">Como jogar</a><a class="room-nav-link" href="/conta.html" data-nav-account>Entrar / Criar conta</a></nav>
+  </header>
+  <main class="how-main"><section class="intro"><div><p class="eyebrow">REGRAS NA MESA</p><h1>Vinte e um, sem mistério.</h1><p class="intro-copy">O objetivo é chegar mais perto de 21 que a Clarice, sem passar desse total.</p></div></section>
+    <section class="how-card"><h2>Como funciona</h2><ol><li>Escolha uma aposta fictícia dentro dos valores disponíveis e comece a rodada.</li><li>As cartas numeradas valem seu número; valete, dama e rei valem 10. O ás vale 1 ou 11, o que ajudar mais.</li><li>Na sua vez, peça carta, pare ou use dobrar/dividir quando essas opções estiverem disponíveis.</li><li>Depois de todos os jogadores, Clarice joga. Ela para ao chegar a 17.</li><li>Vence quem tiver mais pontos sem passar de 21. Um empate devolve a aposta.</li></ol><p>As cartas, resultados e créditos são definidos pelo servidor. Os créditos são apenas fictícios, sem valor monetário e sem resgate.</p><div class="how-cta"><a class="button button-primary" href="/solo.html">Jogar solo</a><a class="button button-soft" href="/">Encontrar uma sala</a></div></section>
+  </main>
+</div><script type="module" src="/src/client/navigation.ts"></script></body></html>

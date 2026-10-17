@@ -1,4 +1,5 @@
 import "./styles.css";
+import "./navigation.ts";
 
 type Suit = "clubs" | "diamonds" | "hearts" | "spades";
 type Card = { rank: string; suit: Suit };

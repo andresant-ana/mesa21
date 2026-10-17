@@ -1,5 +1,6 @@
 import "./styles.css";
 import "./ranking.css";
+import "./navigation.ts";
 
 type Rank = { username: string; netProfit: number; handsPlayed: number; blackjacks: number };
 type Period = "weekly" | "monthly" | "historical";

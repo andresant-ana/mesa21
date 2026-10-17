@@ -1,5 +1,6 @@
 import "./styles.css";
 import "./account.css";
+import "./navigation.ts";
 
 type User = { id: string; username: string; createdAt: number };
 type ApiResult = { user?: User; recoveryCode?: string; error?: string; ok?: boolean };
@@ -23,7 +24,7 @@ const tabs = [...document.querySelectorAll<HTMLButtonElement>("[data-tab]")];
 let busy = false;
 
 const errors: Record<string, string> = {
-  INVALID_CREDENTIALS_FORMAT: "Use 3–20 caracteres no nome e uma senha com pelo menos 12 caracteres.",
+  INVALID_CREDENTIALS_FORMAT: "Confira o nome de usuário e use uma senha com pelo menos 8 caracteres.",
   INVALID_CREDENTIALS: "Credenciais inválidas. Confira seus dados ou o código de recuperação.",
   USERNAME_TAKEN: "Esse nome de usuário já está em uso.",
   TOO_MANY_ATTEMPTS: "Muitas tentativas. Espere 15 minutos antes de tentar novamente.",
@@ -59,6 +60,7 @@ function showUser(user: User): void {
   authPanel.hidden = true;
   accountPanel.hidden = false;
   byId<HTMLElement>("signed-username").textContent = "Oi, " + user.username + "!";
+  window.dispatchEvent(new CustomEvent("mesa21:authenticated", { detail: { username: user.username } }));
 }
 function showRecovery(code: string): void {
   authPanel.hidden = true;
@@ -68,13 +70,20 @@ function showRecovery(code: string): void {
 }
 
 async function request(path: string, body?: unknown): Promise<ApiResult> {
-  const response = await fetch("/api/auth/" + path, {
-    credentials: "same-origin",
-    method: body === undefined ? "GET" : "POST",
-    headers: body === undefined ? undefined : { "Content-Type": "application/json" },
-    body: body === undefined ? undefined : JSON.stringify(body)
-  });
-  const result = await response.json() as ApiResult;
+  let response: Response;
+  try {
+    response = await fetch("/api/auth/" + path, {
+      credentials: "same-origin",
+      method: body === undefined ? "GET" : "POST",
+      headers: body === undefined ? undefined : { "Content-Type": "application/json" },
+      body: body === undefined ? undefined : JSON.stringify(body)
+    });
+  } catch {
+    throw new Error("Não foi possível conectar ao serviço. Confira sua conexão e tente novamente.");
+  }
+  let result: ApiResult;
+  try { result = await response.json() as ApiResult; }
+  catch { throw new Error("O serviço respondeu de forma inesperada. Tente novamente em instantes."); }
   if (!response.ok) throw new Error(errors[result.error ?? ""] ?? "Não foi possível concluir. Tente novamente.");
   return result;
 }
@@ -108,8 +117,18 @@ forms.login.addEventListener("submit", (event) => {
 forms.register.addEventListener("submit", (event) => {
   event.preventDefault();
   void perform(async () => {
-    const password = byId<HTMLInputElement>("register-pass").value;
-    if (password !== byId<HTMLInputElement>("register-confirm").value) {
+    const passwordField = byId<HTMLInputElement>("register-pass");
+    const confirmField = byId<HTMLInputElement>("register-confirm");
+    const password = passwordField.value;
+    if (password.length < 8) {
+      passwordField.setCustomValidity("A senha precisa ter pelo menos 8 caracteres.");
+      passwordField.reportValidity();
+      showError("A senha precisa ter pelo menos 8 caracteres.");
+      return;
+    }
+    if (password !== confirmField.value) {
+      confirmField.setCustomValidity("As senhas precisam ser iguais.");
+      confirmField.reportValidity();
       showError("As senhas precisam ser iguais.");
       return;
     }
@@ -140,12 +159,14 @@ byId<HTMLButtonElement>("copy-recovery").addEventListener("click", async () => {
 });
 byId<HTMLButtonElement>("saved-recovery").addEventListener("click", () => {
   byId<HTMLElement>("recovery-secret").textContent = "";
-  recoveryPanel.hidden = true;
-  void perform(async () => {
-    const result = await request("me");
-    if (result.user) showUser(result.user);
-  });
+  window.location.assign("/");
 });
+for (const id of ["register-pass", "register-confirm"]) {
+  byId<HTMLInputElement>(id).addEventListener("input", () => {
+    byId<HTMLInputElement>(id).setCustomValidity("");
+    clearError();
+  });
+}
 byId<HTMLButtonElement>("sign-out").addEventListener("click", () => void perform(async () => {
   await request("logout", {});
   chooseMode("login");
