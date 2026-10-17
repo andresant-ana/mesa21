@@ -249,7 +249,22 @@ export class RoomLobby {
       if (room.host !== session) return result({ error: "HOST_ONLY" }, 403);
       if (room.round && room.round.phase !== "finished") return result({ error: "ROUND_ACTIVE" }, 409);
       const previous = room.round?.shoe;
-      const shoe = previous && previous.length > RESHUFFLE_REMAINING_CARDS ? previous : createShuffledShoe();
+      const canReuse = Boolean(previous && previous.length > RESHUFFLE_REMAINING_CARDS && room.audit);
+      let shoe: Card[];
+      if (canReuse) {
+        shoe = previous!;
+      } else {
+        if (room.audit) {
+          // Never reveal a deck while it could be dealt again.
+          retireShoe(room.audit, previous?.length ?? room.audit.active.originalCards.length, now);
+        }
+        const committed = await newAuditedShoe(now);
+        room.audit = {
+          active: committed.active,
+          revealed: room.audit?.revealed ?? []
+        };
+        shoe = committed.shoe;
+      }
       room.round = openBetting(room.members, shoe);
       room.touchedAt = now;
       await this.state.storage.put("rooms", stored);
