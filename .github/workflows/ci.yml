@@ -20,4 +20,5 @@ jobs:
       - run: npm run check
       - run: npm test
       - run: npm run build
+      - run: npm run deploy:check
       - run: npm run smoke
