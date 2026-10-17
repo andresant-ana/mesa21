@@ -146,7 +146,7 @@ export function playTableAction(round: TableRound, wallets: TableWallet[], seatI
     if (!round.shoe.length) throw new TableError("SHOE_EXHAUSTED");
     wallet.credits -= hand.wager;
     hand.wager *= 2;
-    hand.cards.push(draw(round));
+    hand.cards.push(draw(round, seat.id, seat.activeHand));
     hand.done = true;
     if (scoreHand(hand.cards).total > 21) hand.result = "bust";
     advanceTableTurn(round, wallets);
