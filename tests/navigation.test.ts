@@ -31,6 +31,7 @@ test("legacy room links retain invitation query when redirecting to lobby", asyn
 test("help route is included in the Vite static build", async () => {
   const [help, config] = await Promise.all([read("como-jogar.html"), read("vite.config.ts")]);
   assert.match(help, /REGRAS NA MESA/);
+  assert.match(help, /data-nav-account/);
   assert.match(config, /"como-jogar\.html"/);
   assert.match(config, /"solo\.html"/);
 });
