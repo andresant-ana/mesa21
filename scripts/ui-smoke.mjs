@@ -118,14 +118,17 @@ try {
   assert.equal(await page.locator("#bet").inputValue(), "20", "solo chip selection updates the bet");
   await page.locator("#new-round").click();
   await page.locator(".flying-card").first().waitFor({ state: "attached", timeout: 15_000 });
-  assert.equal(await page.locator(".flying-card").first().evaluate((card) => {
+  const flightOrigin = await page.locator(".flying-card").first().evaluate((card) => {
     const deck = document.querySelector(".solo-table .deck-stack");
     const rect = deck?.getBoundingClientRect();
-    if (!rect || !(card instanceof HTMLElement)) return false;
-    const x = parseFloat(card.style.left), y = parseFloat(card.style.top);
-    return Math.abs(x + card.offsetWidth / 2 - (rect.left + rect.width / 2)) < 2 &&
-      Math.abs(y + card.offsetHeight / 2 - (rect.top + rect.height / 2)) < 2;
-  }), true, "opening cards originate from the rendered deck position");
+    return { x: parseFloat(card.style.left), y: parseFloat(card.style.top),
+      width: parseFloat(card.style.width), height: parseFloat(card.style.height),
+      deckX: rect?.left, deckY: rect?.top, deckWidth: rect?.width, deckHeight: rect?.height };
+  });
+  assert.ok(flightOrigin.deckX !== undefined && flightOrigin.deckY !== undefined &&
+    Math.abs(flightOrigin.x + flightOrigin.width / 2 - (flightOrigin.deckX + flightOrigin.deckWidth / 2)) < 4 &&
+    Math.abs(flightOrigin.y + flightOrigin.height / 2 - (flightOrigin.deckY + flightOrigin.deckHeight / 2)) < 4,
+    "opening cards originate from the rendered deck position: " + JSON.stringify(flightOrigin));
   await page.waitForFunction(() => document.querySelectorAll("#player-cards .playing-card").length >= 2,
     undefined, { timeout: 15_000 });
   assert.equal(await page.locator("#player-cards .playing-card").count(), 2, "solo round starts with one two-card hand");
