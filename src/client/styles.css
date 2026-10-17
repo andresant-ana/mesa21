@@ -175,3 +175,5 @@ h1 { margin: 8px 0 7px; color: #202822; font: 800 clamp(26px, 4vw, 39px)/1.12 "P
   .solo-table .chip-tray { gap: 7px; }
   .solo-table .chip-button { width: 35px; height: 35px; }
 }
+
+.solo-table .deck-stack { top: 13%; }
