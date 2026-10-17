@@ -29,6 +29,13 @@ Blackjack solo e multiplayer casual, gratuito e leve, com créditos exclusivamen
 
 Classificatória multiplayer com ledger entre objetos, perfil público completo, chat, protocolo de fairness verificável, deploy público e proteção operacional contra abuso automatizado. O saldo de visitante depende do cookie; limpar cookies perde a sessão, e criar várias sessões não é impedido.
 
+## Cloudflare — deploy protegido
+
+- O plano gratuito Workers Free e o subdomínio Cloudflare foram conferidos externamente pelo proprietário. **Nenhum Worker foi publicado.**
+- O CI tradicional verifica o projeto sem credenciais Cloudflare e sem deploy.
+- O workflow `.github/workflows/deploy-production.yml` é manual e bloqueado por padrão: exige `main`, confirmação, SHA exato, a variável de aprovação `MESA21_RELEASE_APPROVED=true`, testes completos e ambiente `production` configurado com credenciais seguras.
+- Enquanto os bloqueios de segurança e privacidade listados em `docs/DEPLOYMENT.md` não forem resolvidos, **não ative a variável de aprovação nem crie token de publicação**.
+
 ## Rodar localmente
 
 Requisito: Node.js 22.12 ou superior.
