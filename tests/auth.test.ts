@@ -84,6 +84,9 @@ test("rejeita senhas fracas e usernames inválidos, e bloqueia após cinco erros
   assert.equal(eight.status, 201);
   assert.equal((await endpoint("/auth/login", { username: "eightchr", password: goodPassword })).status, 200);
   assert.equal((await endpoint("/auth/me", undefined, eight.body.authToken as string)).status, 200);
+  const long = await endpoint("/auth/register", { username: "longpassword", password: nextPassword });
+  assert.equal(long.status, 201, "passwords of 12 or more characters remain valid");
+  assert.equal((await endpoint("/auth/login", { username: "longpassword", password: nextPassword })).status, 200);
   assert.equal((await endpoint("/auth/register", { username: "test", password: "123" })).status, 400);
   assert.equal((await endpoint("/auth/register", { username: "admin", password: goodPassword })).status, 400);
   await endpoint("/auth/register", { username: "matheus", password: goodPassword });
