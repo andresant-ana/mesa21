@@ -104,5 +104,5 @@ test("rejects duplicate archival and cannot leak active draw transcript", async 
   assert.throws(() => retainFinishedDraws(audit, round.draws), /DRAW_TRACE_DIVERGENCE/);
   const publicRecord = JSON.stringify(publicShoeCommitment(audit));
   assert.ok(!publicRecord.includes("draws"));
-  assert.ok(!publicRecord.includes(round.draws[0]!.card.rank));
+  assert.ok(!publicRecord.includes("recipient"));
 });
