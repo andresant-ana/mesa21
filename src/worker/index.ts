@@ -1,4 +1,5 @@
 import type { Env } from "./types.ts";
+import { checkAbuseLimit } from "./abuse.ts";
 
 export { GameSession } from "./GameSession.ts";
 export { RoomLobby } from "./RoomLobby.ts";
@@ -18,6 +19,10 @@ export default {
     const isAccountRequest = isAuthRequest || url.pathname === "/api/wallet" || url.pathname.startsWith("/api/wallet/") ||
       url.pathname === "/api/ranking" || url.pathname.startsWith("/api/ranked/");
     const isSocketRequest = isRoomRequest && url.pathname.endsWith("/stream");
+    // Reject abusive traffic before expensive PBKDF2 or Durable Object calls.
+    const visitorToken = getCookie(request.headers.get("cookie"), SESSION_COOKIE);
+    const limited = await checkAbuseLimit(request, env, url.pathname, visitorToken);
+    if (limited) return limited;
     if (isSocketRequest) {
       const origin = request.headers.get("origin");
       const allowedOrigins = new Set([url.origin, ...env.ALLOWED_ORIGINS.split(",").map((value) => value.trim()).filter(Boolean)]);
@@ -41,7 +46,7 @@ export default {
       if (requestBody.byteLength > 4_096) return apiJson({ error: "REQUEST_TOO_LARGE" }, 413);
     }
 
-    const token = getCookie(request.headers.get("cookie"), SESSION_COOKIE) ?? createSessionToken();
+    const token = visitorToken ?? createSessionToken();
     const namespace = isRoomRequest ? env.ROOM_LOBBY : isAccountRequest ? env.ACCOUNT_DIRECTORY : env.GAME_SESSIONS;
     const id = namespace.idFromName(isRoomRequest ? "global-v1" : isAccountRequest ? "accounts-v1" : token);
     const stub = namespace.get(id);
