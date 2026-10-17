@@ -30,8 +30,10 @@ async function waitForWorker() {
 async function noOverflow(page, label) {
   const state = await page.evaluate(() => ({
     screenWidth: window.innerWidth,
-    documentWidth: document.documentElement.scrollWidth
+    documentWidth: document.documentElement.scrollWidth,
+    pageCanScroll: document.documentElement.scrollHeight > window.innerHeight + 2
   }));
+  assert.ok(!state.pageCanScroll, label + " page scrolls vertically: " + JSON.stringify(state));
   assert.ok(state.documentWidth <= state.screenWidth + 2,
     label + " horizontal overflow: " + JSON.stringify(state));
 }
@@ -64,6 +66,8 @@ try {
         assert.equal(await page.locator(".solo-seat").count(), 1, "solo table reserves one player seat");
         assert.equal(await page.locator(".social-player").count(), 0, "solo does not render multiplayer seats");
         assert.equal(await page.locator("#table-bet").isVisible(), true, "solo shows the round wager");
+        assert.equal(await page.locator("#bet").getAttribute("type"), "hidden", "solo wager is selected only through chips");
+        assert.equal(await page.locator(".dealer-copy strong").innerText(), "dealer", "dealer is anonymous");
         assert.equal(await page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches), true,
           "browser test honors reduced-motion preference");
       }
