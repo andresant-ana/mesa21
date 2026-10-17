@@ -184,8 +184,8 @@ html, body { height: 100%; overflow: hidden; }
 .app-shell { height: 100dvh; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
 .topbar { flex: 0 0 auto; }
 .rooms-main, .board-main, .how-main, .account-main, body > .app-shell > main { min-height: 0; }
-body:has(.solo-table) > .app-shell > main { flex: 1; display: flex; align-items: center; justify-content: center; }
-.solo-table { width: min(100%, 1000px); margin-inline: auto; }
+body:has(.solo-table) > .app-shell > main { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.solo-table { width: min(100%, 1000px); margin-inline: auto; }\n.ranked-table .controls { position: relative; z-index: 2; display: grid; grid-template-columns: minmax(170px, auto) 1fr; align-items: center; gap: clamp(14px, 2.5vw, 30px); margin-top: 11px; padding: 15px 4px 0; border-top: 1px solid rgba(237, 220, 170, .24); }\n.ranked-table .bet-control { display: grid; gap: 8px; color: #f6f0da; }\n.ranked-table .action-buttons { justify-content: flex-end; gap: 9px; }\n.ranked-table .button-outline { color: #f6f0da; border-color: rgba(235, 242, 231, .52); }\n.ranked-table .button-primary { font-weight: 800; letter-spacing: .08em; }
 .dealer-avatar { width: 48px; height: 48px; flex: 0 0 48px; overflow: hidden; border: 2px solid rgba(255,255,255,.56); border-radius: 50%; background: #f3d7ad; box-shadow: 0 3px 10px rgba(0,0,0,.16); }
 .dealer-avatar svg { display: block; width: 100%; height: 100%; }
 .chip-button { cursor: pointer; }
@@ -198,7 +198,7 @@ body:has(.solo-table) > .app-shell > main { flex: 1; display: flex; align-items:
   .app-shell { width: min(100% - 24px, 1120px); }
   .topbar { min-height: 64px; }
   body:has(.solo-table) > .app-shell > main { overflow: hidden; }
-  .solo-table { min-height: 0; max-height: 100%; }
+  .solo-table { min-height: 0; max-height: 100%; }\n  .ranked-table .controls { grid-template-columns: 1fr; gap: 8px; }\n  .ranked-table .action-buttons { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }\n  .ranked-table #new-round { grid-column: 1 / -1; min-height: 46px; }
   .footnote { display: none; }
 }
 @media (max-width: 400px) {
@@ -207,7 +207,7 @@ body:has(.solo-table) > .app-shell > main { flex: 1; display: flex; align-items:
   .solo-table .table-status { align-items: center; }
   .solo-table .solo-table-mode { font-size: 11px; }
   .solo-table .solo-table-credit strong { font-size: 14px; }
-  .solo-table .action-buttons { gap: 6px; }
+  .solo-table .action-buttons, .ranked-table .action-buttons { gap: 6px; }
   .solo-table .button { font-size: 11px; }
   .lobby-actions .button, .board-cta .button, .how-cta .button { padding-inline: 14px; }
 }
