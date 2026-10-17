@@ -273,9 +273,9 @@ function friendlyError(code: string): string {
 }
 
 hitButton.addEventListener("click", () => void perform(actionPath, { action: "hit" }));
-standButton.addEventListener("click", () => void perform("/api/game/action", { action: "stand" }));
-doubleButton.addEventListener("click", () => void perform("/api/game/action", { action: "double" }));
-splitButton.addEventListener("click", () => void perform("/api/game/action", { action: "split" }));
+standButton.addEventListener("click", () => void perform(actionPath, { action: "stand" }));
+doubleButton.addEventListener("click", () => void perform(actionPath, { action: "double" }));
+splitButton.addEventListener("click", () => void perform(actionPath, { action: "split" }));
 newRoundButton.addEventListener("click", () => void perform(startPath, { bet: Number(betElement.value) }));
 refillButton.addEventListener("click", () => { if (!isRanked) void perform("/api/game/refill", {}); });
 window.addEventListener("keydown", (event) => {
