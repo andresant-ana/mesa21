@@ -139,19 +139,19 @@ try {
   assert.equal(await page.locator("#new-round").innerText(), "JOGAR", "the new-round action is labeled JOGAR");
   await page.locator('.chip-button[data-bet="20"]').click();
   assert.equal(await page.locator("#bet").inputValue(), "20", "solo chip selection updates the bet");
+  const deckBeforeRound = await page.locator(".solo-table .deck-stack").boundingBox();
+  assert.ok(deckBeforeRound, "solo deck is visible before the opening deal");
   await page.locator("#new-round").click();
   await page.locator(".flying-card").first().waitFor({ state: "attached", timeout: 15_000 });
-  const flightOrigin = await page.locator(".flying-card").first().evaluate((card) => {
-    const deck = document.querySelector(".solo-table .deck-stack");
-    const rect = deck?.getBoundingClientRect();
-    return { x: parseFloat(card.style.left), y: parseFloat(card.style.top),
-      width: parseFloat(card.style.width), height: parseFloat(card.style.height),
-      deckX: rect?.left, deckY: rect?.top, deckWidth: rect?.width, deckHeight: rect?.height };
-  });
-  assert.ok(flightOrigin.deckX !== undefined && flightOrigin.deckY !== undefined &&
-    Math.abs(flightOrigin.x + flightOrigin.width / 2 - (flightOrigin.deckX + flightOrigin.deckWidth / 2)) < 4 &&
-    Math.abs(flightOrigin.y + flightOrigin.height / 2 - (flightOrigin.deckY + flightOrigin.deckHeight / 2)) < 4,
-    "opening cards originate from the rendered deck position: " + JSON.stringify(flightOrigin));
+  const flightOrigin = await page.locator(".flying-card").first().evaluate((card) => ({
+    x: parseFloat(card.style.left), y: parseFloat(card.style.top),
+    width: parseFloat(card.style.width), height: parseFloat(card.style.height)
+  }));
+  assert.ok(
+    Math.abs(flightOrigin.x + flightOrigin.width / 2 - (deckBeforeRound.x + deckBeforeRound.width / 2)) < 4 &&
+    Math.abs(flightOrigin.y + flightOrigin.height / 2 - (deckBeforeRound.y + deckBeforeRound.height / 2)) < 4,
+    "opening cards originate from the rendered deck position before the server update: " +
+      JSON.stringify({ ...flightOrigin, deckBeforeRound }));
   await page.waitForFunction(() => document.querySelectorAll("#player-cards .playing-card").length >= 2,
     undefined, { timeout: 15_000 });
   assert.equal(await page.locator("#player-cards .playing-card").count(), 2, "solo round starts with one two-card hand");
