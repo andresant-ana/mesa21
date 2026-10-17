@@ -343,7 +343,7 @@ function renderGameplay(room: Detail): void {
   const myHand = seat?.hands[seat.activeHand];
   element<HTMLButtonElement>("game-start").hidden = !(room.isHost && (!round || isFinished));
   element<HTMLElement>("game-betting").hidden = !(isBetting && isPlayer && !hasBet);
-  const wagerSelect = element<HTMLSelectElement>("game-wager");
+  const wagerSelect = element<HTMLInputElement>("game-wager");
   document.querySelectorAll<HTMLButtonElement>("#social-chip-tray [data-wager]").forEach((chip) => {
     chip.setAttribute("aria-pressed", String(chip.dataset.wager === wagerSelect.value));
   });
@@ -456,7 +456,7 @@ element<HTMLButtonElement>("game-deal").addEventListener("click", () => void roo
 document.querySelectorAll<HTMLButtonElement>("#social-chip-tray [data-wager]").forEach((chip) => {
   chip.addEventListener("click", () => {
     if (element<HTMLElement>("game-betting").hidden || busy) return;
-    element<HTMLSelectElement>("game-wager").value = chip.dataset.wager ?? "50";
+    element<HTMLInputElement>("game-wager").value = chip.dataset.wager ?? "50";
     document.querySelectorAll<HTMLButtonElement>("#social-chip-tray [data-wager]").forEach((item) =>
       item.setAttribute("aria-pressed", String(item === chip)));
   });
