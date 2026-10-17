@@ -87,7 +87,6 @@ h1 { margin: 8px 0 7px; color: #202822; font: 800 clamp(26px, 4vw, 39px)/1.12 "P
 .footnote { display: flex; justify-content: space-between; gap: 15px; padding: 15px 0 24px; color: #7b817d; font-size: 11px; line-height: 1.5; }
 .error-message { margin: 0 0 24px; padding: 12px 15px; border-radius: 12px; color: #7a2c24; background: #fff0eb; font-size: 13px; }
 @media (max-width: 760px) {
-  .solo-table { height: 540px; }
   .app-shell { width: min(100% - 28px, 560px); }
   .topbar { height: 68px; }
   .intro { align-items: start; flex-direction: column; padding: 12px 0 18px; gap: 10px; }
@@ -131,7 +130,7 @@ h1 { margin: 8px 0 7px; color: #202822; font: 800 clamp(26px, 4vw, 39px)/1.12 "P
 
 
 /* Solo game controls belong to the felt, so the table contains the full play loop. */
-.solo-table { height: 520px; padding-bottom: 23px; }
+.solo-table { padding-bottom: 23px; }
 .solo-table-status { position: relative; z-index: 2; margin: 0 4px 14px; padding: 0 0 13px; border-bottom: 1px solid rgba(237, 220, 170, .24); }
 .solo-table-mode { margin: 0; color: #f6f0da; font: 700 13px "Plus Jakarta Sans", sans-serif; letter-spacing: 0; }
 .solo-table-metrics { display: flex; align-items: center; gap: clamp(12px, 2.4vw, 28px); }
@@ -185,7 +184,7 @@ html, body { height: 100%; overflow: hidden; }
 .app-shell { height: 100dvh; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
 .topbar { flex: 0 0 auto; }
 .rooms-main, .board-main, .how-main, .account-main, body > .app-shell > main { min-height: 0; }
-body:has(.solo-table) > .app-shell > main { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 6px; }
+body:has(.solo-table) > .app-shell > main { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .solo-table { width: min(100%, 1000px); margin-inline: auto; }
 .ranked-table .controls { position: relative; z-index: 2; display: grid; grid-template-columns: minmax(170px, auto) 1fr; align-items: center; gap: clamp(14px, 2.5vw, 30px); margin-top: 11px; padding: 15px 4px 0; border-top: 1px solid rgba(237, 220, 170, .24); }
 .ranked-table .bet-control { display: grid; gap: 8px; color: #f6f0da; }
@@ -211,7 +210,6 @@ body:has(.solo-table) > .app-shell > main { flex: 1; min-height: 0; display: fle
   .footnote { display: none; }
 }
 @media (max-width: 400px) {
-  .solo-table { height: 545px; }
   .app-shell { width: calc(100% - 16px); }
   .room-nav-link { padding: 7px 8px; font-size: 11px; }
   .solo-table .table-status { align-items: center; }
