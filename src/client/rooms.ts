@@ -1,5 +1,7 @@
 import "./styles.css";
 import "./rooms.css";
+import { verifyRevealedShoe } from "../domain/shoeAudit.ts";
+import type { RevealedShoe } from "../domain/shoeAudit.ts";
 
 type Entry = {
   code: string; name: string; visibility: "public" | "private"; mode: "casual";
@@ -14,6 +16,7 @@ type Detail = Entry & {
   mySeatId: string | null;
   myCredits: number | null;
   round: SocialRound | null;
+  shoeAudit: { protocol: string; commitment: string; committedAt: number; revealedCount: number } | null;
   spectatorsList: Array<{ id: string; name: string }>;
 };
 
@@ -210,6 +213,8 @@ function renderGameplay(room: Detail): void {
   area.hidden = room.role === "visitor";
   if (area.hidden) return;
   const round = room.round;
+  element<HTMLElement>("shoe-commitment").textContent =
+    room.shoeAudit?.commitment ?? "Aguardando a primeira rodada.";
   const isPlayer = room.role === "player";
   const seat = round?.seats.find((s) => s.id === room.mySeatId);
   const dealer = element<HTMLElement>("social-dealer-cards");
@@ -348,6 +353,20 @@ for (const [id, action] of [["social-hit", "hit"], ["social-stand", "stand"],
   element<HTMLButtonElement>(id).addEventListener("click", () => void roomAction("action", { action }));
 }
 element<HTMLButtonElement>("social-refill").addEventListener("click", () => void roomAction("refill"));
+element<HTMLButtonElement>("verify-shoe").addEventListener("click", () => void withBusy(async () => {
+  if (!opened) return;
+  const status = element<HTMLElement>("shoe-audit-result");
+  status.textContent = "Verificando compromissos...";
+  const data = await api<{ revealed: RevealedShoe[] }>("/rooms/" + opened.code + "/audit");
+  if (!data.revealed.length) {
+    status.textContent = "Ainda não há baralhos aposentados. O baralho atual permanece secreto.";
+    return;
+  }
+  const checks = await Promise.all(data.revealed.map(verifyRevealedShoe));
+  status.textContent = checks.every(Boolean)
+    ? checks.length + " baralho(s) aposentado(s) com compromisso válido."
+    : "Atenção: pelo menos uma prova não corresponde ao compromisso!";
+}));
 element<HTMLButtonElement>("refresh-rooms").addEventListener("click", () => void withBusy(renderDirectory));
 window.addEventListener("popstate", () => { closeSocket(); void initialize(); });
 

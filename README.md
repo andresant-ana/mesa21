@@ -9,7 +9,7 @@ Blackjack solo e multiplayer casual, gratuito e leve, com créditos exclusivamen
 - Motor de seis baralhos, cartas embaralhadas com fonte criptográfica, natural 3:2, hit, stand, double, split, empate e dealer para em soft 17.
 - Créditos casuais separados; API não aceita cartas, saldo ou resultado informados pelo navegador.
 - Clarice em SVG inline e cartas desenhadas com CSS; sem imagens raster ou CDN de ícones.
-- Lobby social inicial em `/salas.html`: salas públicas/privadas, convites por URL, ocupação de cadeiras e WebSocket de participantes. **Partidas multiplayer casuais implementadas em código, ainda sem QA em navegadores reais ou publicação.**
+- Lobby social inicial em `/salas.html`: salas públicas/privadas, convites por URL, ocupação de cadeiras e WebSocket de participantes. **Partidas multiplayer casuais implementadas e com smoke Worker/WebSocket; QA de partida ponta a ponta e publicação ainda pendentes.**
 - Testes determinísticos e CI com checagem estrita de tipos.
 
 ## M5 — Contas (primeira fatia)
@@ -27,7 +27,13 @@ Blackjack solo e multiplayer casual, gratuito e leve, com créditos exclusivamen
 
 ### Ainda não implementado
 
-Classificatória multiplayer com ledger entre objetos, perfil público completo, chat, protocolo de fairness verificável, deploy público e proteção operacional contra abuso automatizado. O saldo de visitante depende do cookie; limpar cookies perde a sessão, e criar várias sessões não é impedido.
+Classificatória multiplayer com ledger entre objetos, perfil público completo, chat, fairness completo com semente do jogador, deploy público e proteção operacional adicional contra bots distribuídos. O saldo de visitante depende do cookie; limpar cookies perde a sessão, e criar várias sessões não é impedido.
+
+## M8 — Proteções e auditabilidade parcial
+
+- Rate limiting do Worker para cadastro, autenticação, API, salas e WebSockets; limites adicionais de sockets simultâneos e revogação de acesso ao sair de uma sala.
+- Mesas multiplayer geram compromisso SHA-256 do sapato **antes das apostas**, revelam provas apenas após aposentadoria do baralho e oferecem verificação no navegador.
+- O compromisso é **transparência parcial**, não certificação provably fair. Consultar `docs/ABUSE_PROTECTION.md` e `docs/SHOE_COMMITMENT.md`.
 
 ## Cloudflare — deploy protegido
 
@@ -59,5 +65,9 @@ Wrangler mantém os Durable Objects no ambiente local.
 - docs/SOCIAL_ROOMS.md: contrato das salas de espera reais e limitações de lançamento.
 - docs/ACCOUNTS.md: contrato de autenticação, recuperação, segurança e limites.
 - docs/WALLET.md: economia fictícia, ledger, ranking e limites.
+- docs/ABUSE_PROTECTION.md: controles de abuso e seus limites.
+- docs/SHOE_COMMITMENT.md: formato verificável de compromissos e limitações da fairness.
+- docs/BROWSER_QA.md: evidências de QA no Chromium.
+- docs/DEPLOYMENT.md: gates de produção Cloudflare.
 
 O repositório apresenta exclusivamente MESA/21. Leia a arquitetura, a auditoria Stitch e o plano para detalhes.

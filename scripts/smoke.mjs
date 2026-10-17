@@ -156,6 +156,15 @@ try {
   const started = await request(`/rooms/${room.code}/start`, host, {});
   assert.equal(started.status, 200);
   assert.equal(started.payload.room.round.phase, "betting");
+  assert.match(started.payload.room.shoeAudit.commitment, /^[0-9a-f]{64}$/);
+  assert.equal(started.payload.room.shoeAudit.revealedCount, 0);
+  assert.ok(!JSON.stringify(started.payload.room).includes("originalCards"));
+  const auditCurrent = await request(`/rooms/${room.code}/audit`, host);
+  assert.equal(auditCurrent.status, 200);
+  assert.equal(auditCurrent.payload.current.commitment, started.payload.room.shoeAudit.commitment);
+  assert.deepEqual(auditCurrent.payload.revealed, []);
+  assert.equal(auditCurrent.payload.current.nonce, undefined);
+  assert.equal(auditCurrent.payload.current.cards, undefined);
   assert.equal((await request(`/rooms/${room.code}/bet`, host, { bet: 100 })).status, 200);
   const dealt = await request(`/rooms/${room.code}/bet`, guest, { bet: 50 });
   assert.equal(dealt.status, 200, JSON.stringify(dealt.payload));
