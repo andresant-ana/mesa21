@@ -31,6 +31,11 @@ export function dealFromDeck(table: HTMLElement, cards: HTMLElement[]): void {
     clone.classList.remove("card-in-flight", "card-flip");
     clone.classList.add("flying-card");
     clone.setAttribute("aria-hidden", "true");
+    // Keep a snapshot of the actual deck rectangle used for the flight.
+    clone.dataset.deckLeft = String(origin.left);
+    clone.dataset.deckTop = String(origin.top);
+    clone.dataset.deckWidth = String(origin.width);
+    clone.dataset.deckHeight = String(origin.height);
     clone.removeAttribute("role");
     clone.removeAttribute("aria-label");
     Object.assign(clone.style, {
