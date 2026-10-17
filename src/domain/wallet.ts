@@ -22,8 +22,10 @@ export type Wallet = {
 export type RankPeriod = "weekly" | "monthly" | "historical";
 
 export class WalletError extends Error {
-  constructor(readonly code: "BONUS_ALREADY_CLAIMED" | "ROUND_ACTIVE" | "INVALID_AMOUNT" | "DUPLICATE_EVENT") {
+  readonly code: "BONUS_ALREADY_CLAIMED" | "ROUND_ACTIVE" | "INVALID_AMOUNT" | "DUPLICATE_EVENT";
+  constructor(code: WalletError["code"]) {
     super(code);
+    this.code = code;
     this.name = "WalletError";
   }
 }
