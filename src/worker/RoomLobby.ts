@@ -1,9 +1,11 @@
 
 import type { DurableObjectState, Env } from "./types.ts";
-import { createShuffledShoe, RESHUFFLE_REMAINING_CARDS, STARTING_CASUAL_CREDITS, MIN_BET } from "../domain/blackjack.ts";
+import { RESHUFFLE_REMAINING_CARDS, STARTING_CASUAL_CREDITS, MIN_BET } from "../domain/blackjack.ts";
 import { dealTable, openBetting, placeTableBet, playTableAction, publicTable, TableError } from "../domain/socialGame.ts";
-import type { Action } from "../domain/blackjack.ts";
+import type { Action, Card } from "../domain/blackjack.ts";
 import type { TableRound } from "../domain/socialGame.ts";
+import { newAuditedShoe, retireShoe, publicShoeCommitment } from "../domain/shoeAudit.ts";
+import type { ShoeAuditState } from "../domain/shoeAudit.ts";
 
 type Visibility = "public" | "private";
 type Member = { id: string; session: string; name: string; joinedAt: number; credits: number };
@@ -16,6 +18,7 @@ type Room = {
   members: Member[];
   spectators: Member[];
   round: TableRound | null;
+  audit?: ShoeAuditState | null;
   createdAt: number;
   touchedAt: number;
 };
@@ -81,6 +84,7 @@ function roomDetails(room: Room, session: string) {
     mySeatId: self?.id ?? null,
     myCredits: self && room.members.includes(self) ? self.credits : null,
     round: room.round ? publicTable(room.round) : null,
+    shoeAudit: publicShoeCommitment(room.audit),
     gameAvailable: true
   };
 }
@@ -173,20 +177,21 @@ export class RoomLobby {
       const host = { id: randomCode(), session, name: displayName, joinedAt: now, credits: STARTING_CASUAL_CREDITS };
       const room: Room = {
         code, name, visibility: body.visibility as Visibility, mode: "casual",
-        host: session, members: [host], spectators: [], round: null, createdAt: now, touchedAt: now
+        host: session, members: [host], spectators: [], round: null, audit: null, createdAt: now, touchedAt: now
       };
       stored.rooms.push(room);
       await this.state.storage.put("rooms", stored);
       return result({ room: roomDetails(room, session) }, 201);
     }
 
-    const route = /^\/rooms\/([A-Z0-9]{12})(?:\/(join|leave|stream|start|bet|deal|action|refill))?$/.exec(url.pathname);
+    const route = /^\/rooms\/([A-Z0-9]{12})(?:\/(join|leave|stream|start|bet|deal|action|refill|audit))?$/.exec(url.pathname);
     if (!route || !CODE_PATTERN.test(route[1]!)) return result({ error: "NOT_FOUND" }, 404);
     const room = stored.rooms.find((entry) => entry.code === route[1]);
     if (!room) return result({ error: "ROOM_NOT_FOUND" }, 404);
 
     const action = route[2];
     if (!action && request.method === "GET") return result({ room: roomDetails(room, session) });
+    if (action === "audit" && request.method === "GET") return result({ current: publicShoeCommitment(room.audit), revealed: room.audit?.revealed ?? [] });
 
     if (action === "stream" && request.method === "GET") {
       if (!hasMember(room, session)) return result({ error: "NOT_IN_ROOM" }, 403);
