@@ -25,6 +25,7 @@ export type TableRound = {
   draws: TableDraw[];
   openingCredits: TableWallet[];
   events: TableEvent[];
+  closingCredits: TableWallet[] | null;
 };
 
 export class TableError extends Error {
@@ -50,7 +51,8 @@ export function openBetting(members: readonly TableWallet[], shoe: Card[]): Tabl
     initialShoeLength: shoe.length,
     draws: [],
     openingCredits: members.map(({ id, credits }) => ({ id, credits })),
-    events: []
+    events: [],
+    closingCredits: null
   };
 }
 
@@ -211,6 +213,7 @@ function settleTable(round: TableRound, wallets: TableWallet[]): void {
   round.phase = "finished";
   round.turn = -1;
   round.deadlineAt = null;
+  round.closingCredits = wallets.map(({ id, credits }) => ({ id, credits }));
 }
 
 function value(card: Card): number {
