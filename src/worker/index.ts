@@ -53,7 +53,7 @@ export default {
     if (isAccountRequest) headers.set("x-mesa21-auth-token", getCookie(request.headers.get("cookie"), AUTH_COOKIE) ?? "");
     let response: Response;
     try {
-      response = await stub.fetch(new Request("https://mesa21.internal" + url.pathname.replace(/^\/api/, ""), {
+      response = await stub.fetch(new Request("https://mesa21.internal" + url.pathname.replace(/^\/api/, "") + url.search, {
         method: request.method,
         headers,
         body: requestBody
