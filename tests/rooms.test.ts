@@ -315,15 +315,25 @@ test("compromisso é publicado antes das apostas, prova só aparece após aposen
   assert.ok(!JSON.stringify(activeBody).includes("nonce"));
   assert.ok(!JSON.stringify(activeBody).includes("cards"));
 
-  // Simulate 75% penetration and round finish to isolate audit retirement behavior.
-  const stored = storage.get("rooms") as { rooms: Array<{
-    round: { phase: string; shoe: unknown[] };
-    audit: { active: { originalCards: unknown[] } };
-  }> };
-  stored.rooms[0]!.round.phase = "finished";
-  stored.rooms[0]!.round.shoe = stored.rooms[0]!.audit.active.originalCards.slice(234);
-  const second = await request(host, "/rooms/" + room.code + "/start", {});
-  assert.equal(second.status, 200);
+  // Consume the real shoe across completed rounds; no synthetic deck mutation.
+  let second: Response | null = null;
+  for (let index = 0; index < 100; index++) {
+    const bet = await request(host, "/rooms/" + room.code + "/bet", { bet: 10 });
+    assert.equal(bet.status, 200);
+    const current = (await bet.json() as { room: { round: { phase: string } } }).room.round;
+    if (current.phase === "playing") {
+      assert.equal((await request(host, "/rooms/" + room.code + "/action", { action: "stand" })).status, 200);
+    }
+    const next = await request(host, "/rooms/" + room.code + "/start", {});
+    assert.equal(next.status, 200);
+    const copy = next.clone();
+    const data = await copy.json() as { room: { shoeAudit: { revealedCount: number } } };
+    if (data.room.shoeAudit.revealedCount > 0) {
+      second = next;
+      break;
+    }
+  }
+  assert.ok(second, "after 75% penetration the original shoe must be retired");
   const newSnapshot = (await second.json() as { room: {
     shoeAudit: { commitment: string; revealedCount: number };
   } }).room;
@@ -338,8 +348,10 @@ test("compromisso é publicado antes das apostas, prova só aparece após aposen
   assert.equal(proofBody.current.nonce, undefined);
   assert.equal(proofBody.current.cards, undefined);
   assert.equal(proofBody.revealed[0]!.commitment, snapshot.shoeAudit.commitment);
-  assert.equal(proofBody.revealed[0]!.consumed, 234);
+  assert.ok(proofBody.revealed[0]!.consumed >= 234);
   assert.equal(await verifyRevealedShoe(proofBody.revealed[0]!), true);
+  assert.equal(verifyShoeDrawTrace(proofBody.revealed[0]!), true);
+  assert.equal(verifyShoeRoundReplay(proofBody.revealed[0]!), true);
 });
 
 
