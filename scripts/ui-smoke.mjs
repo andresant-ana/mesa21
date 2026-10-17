@@ -90,8 +90,23 @@ try {
   await page.locator('[data-period="historical"]').click();
   await page.waitForFunction((name) => document.querySelector("#rank-rows")?.textContent?.includes(name), username, { timeout: 15_000 });
   await page.screenshot({ path: "artifacts/ui/real-ranking-desktop.png", fullPage: true });
+
+  // Verify the shoe commitment is visible BEFORE anyone places a social bet.
+  await page.goto(origin + "/salas.html", { waitUntil: "domcontentloaded" });
+  await page.locator("#display-name").fill("QA Player");
+  await page.locator("#room-name").fill("Mesa de Auditoria");
+  await page.locator('#create-room button[type="submit"]').click();
+  await page.locator("#game-start").waitFor({ state: "visible", timeout: 15_000 });
+  await page.locator("#game-start").click();
+  await page.waitForFunction(() => /^[0-9a-f]{64}$/.test(document.querySelector("#shoe-commitment")?.textContent ?? ""),
+    undefined, { timeout: 15_000 });
+  await page.locator(".room-fairness summary").click();
+  await page.locator("#verify-shoe").click();
+  await page.waitForFunction(() => (document.querySelector("#shoe-audit-result")?.textContent ?? "").includes("Ainda não há baralhos aposentados"),
+    undefined, { timeout: 15_000 });
+  await page.screenshot({ path: "artifacts/ui/room-shoe-commitment.png", fullPage: true });
   await context.close();
-  console.log("MESA/21 browser QA PASS: 4 viewports, 5 screens, signup, bonus, ranked game, real ranking");
+  console.log("MESA/21 browser QA PASS: 4 viewports, 5 screens, signup, bonus, ranked game, real ranking, public shoe commitment");
 } catch (error) {
   console.error(error);
   console.error("Wrangler logs:", logs);
