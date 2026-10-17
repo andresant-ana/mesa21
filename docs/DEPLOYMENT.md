@@ -47,7 +47,7 @@ O workflow manual é **bloqueado por padrão**. O job de verificação só inici
 ## Bloqueios de segurança antes de disponibilizar ao público
 
 1. **Antiabuso:** rate limiting inicial via Worker foi implementado (documentado em `docs/ABUSE_PROTECTION.md`), mas é local a cada região e não substitui Turnstile, proteção contra bots distribuídos, monitoramento, quotas duráveis por identidade e limites de conexões simultâneas. É um controle parcial.
-2. **Fairness:** o embaralhamento usa geração criptográfica aleatória, mas **não** existe protocolo verificável publicamente de comprometimento/revelação de baralho. Nunca declarar `provably fair` sem implementar e auditar.
+2. **Fairness:** compromisso SHA-256 e revelação do sapato após aposentadoria foram implementados **somente no multiplayer casual**. Essa transparência parcial não comprova aleatoriedade independente nem todas as cartas distribuídas; falta semente combinada de jogador/servidor, replay e implementação nas modalidades solo e classificatória. Nunca declarar `provably fair` sem completar e auditar. Ver `docs/SHOE_COMMITMENT.md`.
 3. **Concorrência e identidade:** contas usam um único `AccountDirectory`, e salas casuais usam armazenamento distinto; multiplayer classificatório com pagamentos idempotentes **não está pronto**.
 4. **Privacidade e custos:** política de dados/retenção, testes de abuso, testes de carga e limites do plano gratuito precisam ser validados. Verificar obrigações legais de jogo de simulação sem dinheiro real.
 5. **Qualidade:** testes WCAG, aparelhos físicos, navegador Safari/Firefox e auditoria visual completa contra o Stitch estão pendentes.
