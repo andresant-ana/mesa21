@@ -53,6 +53,7 @@ let polling: number | null = null;
 let firstRoomSnapshot = true;
 let renderedRoundId: number | null = null;
 let priorDealerCards: Array<SocialCard | null> = [];
+let lastGameSnapshot = "";
 let timer: number | null = null;
 const previousHandSizes = new Map<string, number>();
 const CODE_PATTERN = /^[A-F0-9]{12}$/;
@@ -223,6 +224,12 @@ function renderGameplay(room: Detail): void {
   const area = element<HTMLElement>("game-area");
   area.hidden = room.role === "visitor";
   if (area.hidden) return;
+  // Room changes can arrive via WebSocket AND HTTP. Replaying identical snapshots
+  // must not destroy an in-progress card flight.
+  const fingerprint = JSON.stringify({ round: room.round, members: room.members,
+    credits: room.myCredits, role: room.role, isHost: room.isHost });
+  if (fingerprint === lastGameSnapshot) return;
+  lastGameSnapshot = fingerprint;
   cancelCardMotion();
   const round = room.round;
   const newRound = round !== null && round.roundId !== renderedRoundId;
@@ -374,6 +381,7 @@ async function openRoom(code: string, updateHistory = true): Promise<void> {
   firstRoomSnapshot = true;
   renderedRoundId = null;
   priorDealerCards = [];
+  lastGameSnapshot = "";
   previousHandSizes.clear();
   cancelCardMotion();
   closeSocket();
@@ -428,6 +436,7 @@ leaveButton.addEventListener("click", () => void withBusy(async () => {
   const intro = document.querySelector<HTMLElement>(".rooms-main > .intro");
   if (intro) intro.hidden = false;
   cancelCardMotion();
+  lastGameSnapshot = "";
   history.pushState({}, "", "/");
   detailPanel.hidden = true;
   element<HTMLElement>("game-area").hidden = true;
